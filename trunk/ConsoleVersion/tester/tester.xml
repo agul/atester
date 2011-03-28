@@ -1,0 +1,8 @@
+<program>project2.exe</program>
+<count>5</count>
+<timelimit>1</timelimit>
+<memorylimit>256</memorylimit>
+<checker></checker>
+<report>0</report>
+<input>input.txt</input>
+<output>output.txt</output>
