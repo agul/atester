@@ -1,0 +1,1 @@
+*Updater.dpr* includes one single module of updater. Updater is console application, which is running after downloading new version of ATester.
