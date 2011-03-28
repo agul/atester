@@ -1,0 +1,1 @@
+*tester.dpr* - main project. It is similar to main part of GUI Version, because it includes dirty hack - I have created form, but it is invisible. The form has been created to avoid bugs during creating console version.
