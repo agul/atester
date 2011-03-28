@@ -1,0 +1,18 @@
+{$APPTYPE CONSOLE}
+uses SysUtils;
+var a,b:integer; i:longint;
+begin
+assign(input,'input.txt');
+assign(output,'output.txt');
+reset(input);
+rewrite(output);
+readln(a,b);
+for i:=1 to b do inc(a);
+for i:=b downto 1 do dec(a);
+while 1=1 do inc(a);
+sleep(700);
+if a=-1 then writeln(a+b);
+close(input);
+close(output);
+end.
+ 

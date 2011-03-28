@@ -1,0 +1,16 @@
+{$APPTYPE CONSOLE}
+uses SysUtils;
+var test,outp,log:textfile; a,b:longint;
+begin
+assignfile(test,'test.out');
+assignfile(outp,'output.txt');
+assignfile(log,'check.log');
+reset(test);
+reset(outp);
+rewrite(log);
+if a=b then writeln('ok') else writeln('wa');
+closefile(test);
+closefile(outp);
+closefile(log);
+end.
+ 

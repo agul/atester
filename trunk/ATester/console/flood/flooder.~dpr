@@ -1,0 +1,26 @@
+{$APPTYPE CONSOLE}
+uses  Windows, SysUtils, Classes, Graphics, Forms, Controls, StdCtrls,
+      Buttons, ExtCtrls, Spin;
+
+var i,a,b,k:longint; s:string; t:textfile;
+begin
+randomize;
+for i:=1 to 10 do begin
+  s:=extractfilepath(Application.ExeName)+'tests\inp'+inttostr(i)+'.';
+  k:=filecreate(s+'in');
+  fileclose(k);
+  k:=filecreate(s+'out');
+  fileclose(k);
+  a:=random(1000);
+  b:=random(1000);
+  assignfile(t,s+'in');
+  rewrite(t);
+  writeln(t,a,' ',b);
+  close(t);  
+  assignfile(t,s+'out');
+  rewrite(t);
+  writeln(t,a+b);
+  close(t);
+end;
+end.
+ 
