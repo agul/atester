@@ -1,0 +1,12 @@
+ATester supports checkers (validating programs).
+
+Checkers should follow ATester Checker Format:
+ * Checkers should use ONLY 4 files: *test.in* - test input; *test.out* - test output; *output.txt* - program output; *check.log* - checker log.
+ * Checker should return result in checker log file - *check.log*. Actually, answers are simple: *OK* - program output is correct; *WA* - program output is wrong or format is invalid.
+ * Time Limit for all checkers is 10 seconds.
+ * There is no memory limit for checkers.
+ * If checker does not return result/checker log is not equal to *OK* or *WA*/checker time limit exceeded/checker exit code was not equal to zero then ATester will return *Checker Error* status of testing. 
+
+Also, ATester can work with Testlib checkers. BUT, you should download modified version of Testlib (all function are similar, but writing report is different).
+ * *[http://atester.googlecode.com/svn/trunk/testlib/testlib_atester.pas testlib_atester.pas]* - Delphi library.
+ * *[http://atester.googlecode.com/svn/trunk/testlib/testlib_atester.h testlib_atester.h]* - C++ library.
