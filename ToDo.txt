@@ -1,0 +1,19 @@
+void transformParams()			= from (int argc, char ** argv) to (vector<string> cmdParams)
+string grabINIFileName()		= take .ini file name from cmdParams
+void loadINIFile()				= load params from INIFile + throw warning if redefined (last definition is accepted)
+void generateWarning()			= output yellow label "Warning: %msg%"
+void generateError()			= output red label "Error: %msg%" + clearEnvironment() + terminate ATester
+void showHelp()					= output help if needed (-help, -helpcheckers, -helpmasks, -helpdefault)
+
+
+												=== Structure prototype ===
+
+prepareEnvironment() 			= check ".exe" for testing program and checker (may be std::%checkerName%)
+								= create directory for invocation
+								= copy all data to that directory (tests will be copied one by one just before invocation on that test)
+
+runTesting()					= obvious :) A lot to do
+
+clearEnvironment()				= delete all data of invocation and remove directory
+
+outputInfo()					= output all invocation info: timePeak, memoryPeak, verdict (comment if exists)
