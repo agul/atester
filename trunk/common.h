@@ -16,6 +16,27 @@
 
 using namespace std;
 
+enum ConsoleColor {
+	CC_BLACK = 0,
+	CC_BLUE = 1,
+	CC_GREEN = 2,
+	CC_CYAN = 3,
+	CC_RED = 4,
+	CC_MAGENTA = 5,
+	CC_BROWN = 6,
+	CC_LIGHTGRAY = 7,
+	CC_DARKGRAY = 8,
+	CC_LIGHTBLUE = 9,
+	CC_LIGHTGREEN = 10,
+	CC_LIGHTCYAN = 11,
+	CC_LIGHTRED = 12,
+	CC_LIGHTMAGENTA = 13,
+	CC_YELLOW = 14,
+	CC_WHITE = 15
+};
+
+const HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
 enum ParamType {
 	PT_INT,
 	PT_STRING
@@ -43,26 +64,15 @@ const string VerdictName[VERDICT_COUNT] = {
 	"Internal Error"
 };
 
-enum ConsoleColor {
-	CC_BLACK = 0,
-	CC_BLUE = 1,
-	CC_GREEN = 2,
-	CC_CYAN = 3,
-	CC_RED = 4,
-	CC_MAGENTA = 5,
-	CC_BROWN = 6,
-	CC_LIGHTGRAY = 7,
-	CC_DARKGRAY = 8,
-	CC_LIGHTBLUE = 9,
-	CC_LIGHTGREEN = 10,
-	CC_LIGHTCYAN = 11,
-	CC_LIGHTRED = 12,
-	CC_LIGHTMAGENTA = 13,
-	CC_YELLOW = 14,
-	CC_WHITE = 15
+const ConsoleColor VerdictColor[VERDICT_COUNT] = {
+	CC_DARKGRAY,
+	CC_GREEN,
+	CC_LIGHTRED,
+	CC_LIGHTRED,
+	CC_LIGHTRED,
+	CC_LIGHTRED,
+	CC_YELLOW
 };
-
-const HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 string toa(int x);
 int toi(string s);
