@@ -7,6 +7,8 @@ int main(int argc, char** argv) {
 
 	initializeFlags();
 	Invocation * Attempt = new Invocation();
+	Attempt->transformParams(argc, argv);
+	Attempt->loadINIFile(Attempt->getINIFileName());
 	//Attempt->grabINIFileName();
 	//Attempt->loadINIFile();
 	//Attempt->runHelp();

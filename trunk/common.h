@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 #include <sstream>
+#include <fstream>
 #include <ctime>
 #include <Windows.h>
 
@@ -76,7 +77,9 @@ const ConsoleColor VerdictColor[VERDICT_COUNT] = {
 
 string toa(int x);
 int toi(string s);
+string lowercase(string s);
 
+bool fileExists(string filename);
 void initializeFlags();
 void setColor(ConsoleColor color);
 void generateError(string msg);

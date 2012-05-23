@@ -1,7 +1,7 @@
 #pragma once
 
 struct parameters {
-	 bool help, helpCheckers, helpMasks, helpDefault;
+	 bool help, helpCheckers, helpMasks, helpDefault, INIFileSet;
 	 int tl, ml, tc;
 	 string p, i, o, c, td, INIfile;
 
@@ -17,6 +17,7 @@ struct parameters {
 		helpMasks = false;
 		i = "input.txt";
 		INIfile = "atester.ini";
+		INIFileSet = false;
 		ml = 256000000;
 		o = "output.txt";
 		p = "task.exe";
@@ -54,10 +55,14 @@ class Invocation {
 public:
 	Invocation();
 
+	void transformParams(int argc, char ** argv);
+	string getINIFileName();
+	void loadINIFile(string filename);
+	
 	void runHelp();
 	VerdictType getVerdict();
 private:
 	parameters params;
 	information info;
-	int totalParamsCount;
+	vector<string> cmdParams;
 };
