@@ -63,6 +63,13 @@ void initializeFlags() {
 
 }
 
+bool fileExists(string filename) {
+	ifstream in;
+	in.open(filename);
+	in.close();
+	return !in.fail();
+}
+
 void generateWarning(string msg) {
 	setColor(CC_YELLOW);
 	cout << "Warning: " << msg << endl;

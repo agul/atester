@@ -1,5 +1,5 @@
-void transformParams()			= from (int argc, char ** argv) to (vector<string> cmdParams)
-string grabINIFileName()		= take .ini file name from cmdParams
+setWindowTitle()
+
 void loadINIFile()				= load params from INIFile + throw warning if redefined (last definition is accepted)
 void generateWarning()			= output yellow label "Warning: %msg%"
 void generateError()			= output red label "Error: %msg%" + clearEnvironment() + terminate ATester
