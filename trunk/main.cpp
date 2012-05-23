@@ -3,7 +3,7 @@
 
 int main(int argc, char** argv) {
 	cin.sync_with_stdio(0);
-	srand((unsigned int)time(NULL) - rand() * 239);
+	srand((unsigned int)time(NULL) + rand() * 239);
 
 	initializeFlags();
 	Invocation * Attempt = new Invocation();
