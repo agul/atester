@@ -4,19 +4,20 @@
 int main(int argc, char** argv) {
 	cin.sync_with_stdio(0);
 	srand((unsigned int)time(NULL) + rand() * 239);
-
+	
+	showStartUpInfo();
 	initializeFlags();
 	Invocation * Attempt = new Invocation();
+	cout << endl;
 	Attempt->transformParams(argc, argv);
-	Attempt->loadINIFile(Attempt->getINIFileName());
-	//Attempt->grabINIFileName();
-	//Attempt->loadINIFile();
-	//Attempt->runHelp();
+	Attempt->loadCFGFile(Attempt->getCFGFileName());
+	//Attempt->loadParams();
+	//Attempt->showHelp();
 
 
-	printf("%d\n", argc);
+	/* printf("%d\n", argc);
 	for (int i = 0; i < argc; ++i)
-		printf("%d : %s\n", i, argv[i]);
+		printf("%d : %s\n", i, argv[i]); */
 
 	system("pause");
 	return 0;

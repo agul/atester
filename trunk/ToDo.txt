@@ -1,7 +1,3 @@
-setWindowTitle()
-
-void loadINIFile()				= load params from INIFile + throw warning if redefined (last definition is accepted)
-void generateWarning()			= output yellow label "Warning: %msg%"
 void generateError()			= output red label "Error: %msg%" + clearEnvironment() + terminate ATester
 void showHelp()					= output help if needed (-help, -helpcheckers, -helpmasks, -helpdefault)
 

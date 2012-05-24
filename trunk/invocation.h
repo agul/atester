@@ -1,13 +1,14 @@
 #pragma once
 
 struct parameters {
-	 bool help, helpCheckers, helpMasks, helpDefault, INIFileSet;
+	 bool help, helpCheckers, helpMasks, helpDefault, helpConfig;
 	 int tl, ml, tc;
-	 string p, i, o, c, td, INIfile;
+	 string p, i, o, c, td, CFGfile;
 
 	 struct testFileMask {
 		 string full, beginPart, endPart;
 		 int digits;
+		 bool numberNeeded;
 	 } tim, tom;
 
 	 parameters() {
@@ -15,9 +16,10 @@ struct parameters {
 		help = false;
 		helpCheckers = false;
 		helpMasks = false;
+		helpDefault = false;
+		helpConfig = false;
 		i = "input.txt";
-		INIfile = "atester.ini";
-		INIFileSet = false;
+		CFGfile = "atester.cfg";
 		ml = 256000000;
 		o = "output.txt";
 		p = "task.exe";
@@ -27,11 +29,13 @@ struct parameters {
 		tim.digits = 2;
 		tim.endPart = "";
 		tim.full = "??";
+		tim.numberNeeded = true;
 		tl = 2000;
 		tom.beginPart = "";
 		tom.digits = 2;
 		tom.endPart = ".a";
 		tom.full = "??.a";
+		tom.numberNeeded = true;
 	 }
 
 };
@@ -40,6 +44,7 @@ struct information {
 	int timePeak, memoryPeak;
 	VerdictType verdict;
 	string iid, code;
+	bool CFGFileSet;
 
 	information() {
 		iid = toa((int)GetCurrentProcessId());
@@ -47,6 +52,7 @@ struct information {
 		memoryPeak = 0;
 		timePeak = 0;
 		verdict = VT_UD;
+		CFGFileSet = false;
 	}
 
 };
@@ -56,10 +62,10 @@ public:
 	Invocation();
 
 	void transformParams(int argc, char ** argv);
-	string getINIFileName();
-	void loadINIFile(string filename);
+	string getCFGFileName();
+	void loadCFGFile(string filename);
 	
-	void runHelp();
+	void showHelp();
 	VerdictType getVerdict();
 private:
 	parameters params;

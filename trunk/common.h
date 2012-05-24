@@ -1,5 +1,7 @@
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <cstdio>
 #include <conio.h>
 #include <cstdlib>
@@ -8,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <set>
 #include <sstream>
 #include <fstream>
 #include <ctime>
@@ -16,6 +19,8 @@
 #define pb push_back
 
 using namespace std;
+
+#define _ATESTER_CURRENT_VERSION_ "4.0beta"
 
 enum ConsoleColor {
 	CC_BLACK = 0,
@@ -80,6 +85,9 @@ int toi(string s);
 string lowercase(string s);
 
 bool fileExists(string filename);
+string getNum(int n, int mask);
+
+void showStartUpInfo();
 void initializeFlags();
 void setColor(ConsoleColor color);
 void generateError(string msg);
