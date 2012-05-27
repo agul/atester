@@ -10,8 +10,11 @@ int main(int argc, char** argv) {
 	Invocation * Attempt = new Invocation();
 	cout << endl;
 	Attempt->transformParams(argc, argv);
-	Attempt->loadCFGFile(Attempt->getCFGFileName());
-	//Attempt->loadParams();
+	Attempt->getCFGFileName();
+	Attempt->getNoWarnings();
+	cleanWarningsQueue();
+	Attempt->loadCFGFile();
+	Attempt->loadParams();
 	//Attempt->showHelp();
 
 
