@@ -1,17 +1,37 @@
 #pragma once
 
 struct parameters {
-	 bool help, helpCheckers, helpMasks, helpDefault, helpConfig;
-	 int tl, ml, tc;
-	 string p, i, o, c, td, CFGfile;
+	bool help, helpCheckers, helpConfig, helpDefault, helpMasks;
+	int ml, tc, tl;
+	string c, CFGfile, i, o, p, td;
 
-	 struct testFileMask {
-		 string full, beginPart, endPart;
-		 int digits;
-		 bool numberNeeded;
-	 } tim, tom;
+	struct testFileMask {
+		string beginPart, endPart, full;
+		int digits;
+		bool numberNeeded;
 
-	 parameters() {
+		void parse() {
+			beginPart = "";
+			endPart = "";
+			digits = 0;
+			numberNeeded = true;
+			int ls = full.length(), x = 0, y;
+			while (x < ls && full[x] != '?') ++x;
+			if (x == ls) {
+				beginPart = full;
+				numberNeeded = false;
+				return;
+			}
+			beginPart = full.substr(0, x);
+			y = x;
+			while (x < ls && full[x] == '?') ++x;
+			digits = x - y;
+			endPart = full.substr(x);
+		}
+
+	} tim, tom;
+
+	parameters() {
 		c = "std::fcmp";
 		help = false;
 		helpCheckers = false;
@@ -25,24 +45,16 @@ struct parameters {
 		p = "task.exe";
 		tc = 0;
 		td = "tests/";
-		tim.beginPart = "";
-		tim.digits = 2;
-		tim.endPart = "";
 		tim.full = "??";
-		tim.numberNeeded = true;
 		tl = 2000;
-		tom.beginPart = "";
-		tom.digits = 2;
-		tom.endPart = ".a";
 		tom.full = "??.a";
-		tom.numberNeeded = true;
-	 }
+	}
 
 };
 
 struct information {
 	int timePeak, memoryPeak;
-	VerdictType verdict;
+	OutcomeType outcome;
 	string iid, code;
 	bool CFGFileSet;
 
@@ -51,7 +63,7 @@ struct information {
 		code = "ATester :: Invocation " + iid;
 		memoryPeak = 0;
 		timePeak = 0;
-		verdict = VT_UD;
+		outcome = OT_UD;
 		CFGFileSet = false;
 	}
 
@@ -62,11 +74,12 @@ public:
 	Invocation();
 
 	void transformParams(int argc, char ** argv);
-	string getCFGFileName();
-	void loadCFGFile(string filename);
+	void getNoWarnings();
+	void getCFGFileName();
+	void loadCFGFile();
+	void loadParams();
 	
 	void showHelp();
-	VerdictType getVerdict();
 private:
 	parameters params;
 	information info;

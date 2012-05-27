@@ -23,44 +23,39 @@ using namespace std;
 #define _ATESTER_CURRENT_VERSION_ "4.0beta"
 
 enum ConsoleColor {
-	CC_BLACK = 0,
-	CC_BLUE = 1,
-	CC_GREEN = 2,
-	CC_CYAN = 3,
-	CC_RED = 4,
-	CC_MAGENTA = 5,
-	CC_BROWN = 6,
-	CC_LIGHTGRAY = 7,
-	CC_DARKGRAY = 8,
-	CC_LIGHTBLUE = 9,
-	CC_LIGHTGREEN = 10,
-	CC_LIGHTCYAN = 11,
-	CC_LIGHTRED = 12,
-	CC_LIGHTMAGENTA = 13,
-	CC_YELLOW = 14,
-	CC_WHITE = 15
+	CC_BLACK,
+	CC_BLUE,
+	CC_GREEN,
+	CC_CYAN,
+	CC_RED,
+	CC_MAGENTA,
+	CC_BROWN,
+	CC_LIGHTGRAY,
+	CC_DARKGRAY,
+	CC_LIGHTBLUE,
+	CC_LIGHTGREEN,
+	CC_LIGHTCYAN,
+	CC_LIGHTRED,
+	CC_LIGHTMAGENTA,
+	CC_YELLOW,
+	CC_WHITE
 };
 
 const HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-enum ParamType {
-	PT_INT,
-	PT_STRING
+const int OUTCOME_COUNT = 7;
+
+enum OutcomeType {
+	OT_UD,
+	OT_AC,
+	OT_WA,
+	OT_TL,
+	OT_ML,
+	OT_RE,
+	OT_IE
 };
 
-const int VERDICT_COUNT = 7;
-
-enum VerdictType {
-	VT_UD,
-	VT_AC,
-	VT_WA,
-	VT_TL,
-	VT_ML,
-	VT_RE,
-	VT_IE
-};
-
-const string VerdictName[VERDICT_COUNT] = {
+const string OutcomeName[OUTCOME_COUNT] = {
 	"Checking...",
 	"Accepted!",
 	"Wrong Answer",
@@ -70,7 +65,7 @@ const string VerdictName[VERDICT_COUNT] = {
 	"Internal Error"
 };
 
-const ConsoleColor VerdictColor[VERDICT_COUNT] = {
+const ConsoleColor OutcomeColor[OUTCOME_COUNT] = {
 	CC_DARKGRAY,
 	CC_GREEN,
 	CC_LIGHTRED,
@@ -83,8 +78,9 @@ const ConsoleColor VerdictColor[VERDICT_COUNT] = {
 string toa(int x);
 int toi(string s);
 string lowercase(string s);
-
-bool fileExists(string filename);
+inline bool fileExists(string filename);
+inline bool isDelim(char ch);
+void trim(string& s);
 string getNum(int n, int mask);
 
 void showStartUpInfo();
@@ -92,3 +88,4 @@ void initializeFlags();
 void setColor(ConsoleColor color);
 void generateError(string msg);
 void generateWarning(string msg);
+void cleanWarningsQueue();

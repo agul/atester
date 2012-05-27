@@ -1,4 +1,3 @@
-void loadParams()				= parse cmd params
 void generateError()			= output red label "Error: %msg%" + clearEnvironment() + terminate ATester
 void showHelp()					= output help if needed (-help, -helpcheckers, -helpmasks, -helpdefault)
 
