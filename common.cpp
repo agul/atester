@@ -31,7 +31,7 @@ void showStartUpInfo() {
 	time_t t = time(0); 
 	int year = localtime(&t)->tm_year + 1900;
 	if (year > 2012) cout << "-" << year;
-	cout << endl << "\t\t---------------------------------------" << endl;
+	cout << endl << "\t\t---------------------------------------" << endl << endl;
 }
 
 void setColor(ConsoleColor color) {
