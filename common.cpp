@@ -35,13 +35,13 @@ void showStartUpInfo() {
 }
 
 void setColor(ConsoleColor color) {
-	SetConsoleTextAttribute(hStdOut, (WORD)((CC_BLACK << 4) | color));
+	SetConsoleTextAttribute(hStdOut, (WORD)color);
 }
 
 string lowercase(string s) {
 	int ls = s.length();
 	for (int i = 0; i < ls; ++i)
-		if (s[i] >= 'A' && s[i] <= 'Z') s[i] ^= 32;
+		s[i] |= 32;
 	return s;
 }
 

@@ -3,7 +3,7 @@
 struct parameters {
 	bool help, helpCheckers, helpConfig, helpDefault, helpMasks;
 	int ml, tc, tl;
-	string c, CFGfile, i, o, p, td;
+	string c, CFGfile, i, o, p;
 
 	struct testFileMask {
 		string beginPart, endPart, full;
@@ -27,6 +27,8 @@ struct parameters {
 			while (x < ls && full[x] == '?') ++x;
 			digits = x - y;
 			endPart = full.substr(x);
+			size_t includesNum = endPart.find("?");
+			if (includesNum >= 0 && includesNum < endPart.length()) generateError("test file mask can include only one block differentiating test number");
 		}
 
 	} tim, tom;
@@ -44,7 +46,6 @@ struct parameters {
 		o = "output.txt";
 		p = "task.exe";
 		tc = 0;
-		td = "tests/";
 		tim.full = "??";
 		tl = 2000;
 		tom.full = "??.a";
@@ -71,14 +72,18 @@ struct information {
 
 class Invocation {
 public:
-	Invocation();
+	Invocation(int argc, char ** argv);
 
-	void transformParams(int argc, char ** argv);
 	void getNoWarnings();
 	void getCFGFileName();
 	void loadCFGFile();
 	void loadParams();
+
+	void createEnvironment();
+	void clearEnvironment();
+	void terminate(bool needWarnings);
 	
+	void error(string msg);
 	void showHelp();
 private:
 	parameters params;
