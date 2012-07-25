@@ -1,10 +1,6 @@
-void generateError()			= output red label "Error: %msg%" + clearEnvironment() + terminate ATester
-void showHelp()					= output help if needed (-help, -helpcheckers, -helpmasks, -helpdefault)
-
-
 												=== Structure prototype ===
 
-prepareEnvironment() 			= check ".exe" for testing program and checker (may be std::%checkerName%)
+createEnvironment() 			= check ".exe" for testing program and checker (may be std::%checkerName%)
 								= create directory for invocation
 								= copy all data to that directory (tests will be copied one by one just before invocation on that test)
 
