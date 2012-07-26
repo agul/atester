@@ -58,10 +58,11 @@ struct information {
 	OutcomeType outcome;
 	string iid, code;
 	bool CFGFileSet;
+	char invocationDirectory[1024], checkerPath[1024], workingDirectory[1024];
 
 	information() {
 		iid = toa((int)GetCurrentProcessId());
-		code = "ATester :: Invocation " + iid;
+		code = "ATester Invocation " + iid;
 		memoryPeak = 0;
 		timePeak = 0;
 		outcome = OT_UD;

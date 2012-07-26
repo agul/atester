@@ -256,6 +256,8 @@ rept:
 	}
 	params.tim.parse();
 	params.tom.parse();
+	GetCurrentDirectoryA(1024, info.workingDirectory);
+	info.invocationDirectory = info.workingDirectory;
 }
 
 void Invocation::terminate(bool needWarnings = true) {
@@ -271,7 +273,14 @@ void Invocation::terminate(bool needWarnings = true) {
 }
 
 void Invocation::createEnvironment() {
-	
+	if (params.p.rfind(".exe") != params.p.length() - 4) error("Only executable files are accepted to testing");
+	if (!CreateDirectoryA(info.code.c_str(), NULL) && !CreateDirectoryA(info.code.c_str(), NULL)) error("Can not create temporary directory for testing environment");
+	if (!params.c.find("std::")) {
+		//ToDo: create resource
+	} else 
+	if (params.c.rfind(".exe") != params.c.length() - 4) error("Checkers must be executable files"); else {
+		
+	}
 }
 
 void Invocation::clearEnvironment() {
