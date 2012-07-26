@@ -26,16 +26,16 @@ void initializeFlags() {
 
 void generateWarning(string msg) {
 	if (showWarnings) {
-		setColor(CC_YELLOW);
+		setConsoleTextColor(CC_YELLOW);
 		cout << "Warning: " << msg << endl << endl;
-		setColor(CC_LIGHTGRAY);
+		setConsoleTextColor(CC_LIGHTGRAY);
 	}
 }
 
 void generateError(string msg) {
-	setColor(CC_LIGHTRED);
+	setConsoleTextColor(CC_LIGHTRED);
 	cout << "Error: " << msg << endl << endl;
-	setColor(CC_LIGHTGRAY);
+	setConsoleTextColor(CC_LIGHTGRAY);
 }
 
 void cleanWarningsQueue() {
@@ -51,9 +51,9 @@ Invocation::Invocation(int argc, char ** argv) {
 	time_t nowTime = time(0);
 	struct tm * curTime = localtime(&nowTime);
 	cout << "Start time: " << getNum(curTime->tm_hour, 2) << ":" << getNum(curTime->tm_min, 2) << ":" << getNum(curTime->tm_sec, 2) << " " << getNum(curTime->tm_mday, 2) << "." << getNum(curTime->tm_mon, 2) << "." << (curTime->tm_year + 1900) << endl;
-	params = parameters();
-	info = information();
-	cout << "Invoker ID: " << info.iid << endl;
+	params = new Parameters();
+	info = new Information();
+	cout << "Invoker ID: " << info->getInvocationID() << endl;
 	string s, t;
 	for (int i = 1; i < argc; ++i) {
 		s = (string)argv[i];
@@ -72,7 +72,7 @@ void Invocation::getNoWarnings() {
 	string s1, s2, s;
 	int x, ls;
 	ifstream in;
-	in.open(params.CFGfile);
+	in.open(params->getCFGFileName());
 	while (getline(in, s)) {
 		trim(s);
 		if (s[0] == '[' || s[0] == ';') continue;
@@ -100,22 +100,22 @@ void Invocation::getNoWarnings() {
 }
 
 void Invocation::getCFGFileName() {
-	params.CFGfile = "atester.cfg";
+	params->setCFGFileName("atester.cfg");
 	int kk = cmdParams.size() - 1;
 	for (int i = 0; i < kk; ++i)
 		if (cmdParams[i] == "-cfgfile") {
-			params.CFGfile = cmdParams[i + 1];
-			if (info.CFGFileSet) warningsQueue.pb("argument " + toa(i + 1) + " :: parameter \"-cfgfile\" redefinition. Last definition is accepted");
-			info.CFGFileSet = true;
+			params->setCFGFileName(cmdParams[i + 1]);
+			if (info->getIsCFGFileSet()) warningsQueue.pb("argument " + toa(i + 1) + " :: parameter \"-cfgfile\" redefinition. Last definition is accepted");
+			info->setIsCFGFileSet(true);
 		}
 }
 
 void Invocation::loadCFGFile() {
 	ifstream in;
-	in.open(params.CFGfile);
+	in.open(params->getCFGFileName());
 	if (in.fail()) {
 		in.close();
-		if (info.CFGFileSet) warningsQueue.pb("configuration file \"" + params.CFGfile + "\" was not found");
+		if (info->getIsCFGFileSet()) warningsQueue.pb("configuration file \"" + params->getCFGFileName() + "\" was not found");
 		return;
 	}
 	string s, curParam, curValue;
@@ -155,36 +155,36 @@ void Invocation::loadCFGFile() {
 		ok = !definedParams.count(curParam);
 		if (!ok) warningsQueue.pb("parameter \"" + curParam + "\" redefinition if configuration file. Last definition is accepted");
 		int intValue;
-		if (curParam == "-c") params.c = curValue; else
-		if (curParam == "-i") params.i = curValue; else
+		if (curParam == "-c") params->setCheckerFileName(curValue); else
+		if (curParam == "-i") params->setInputFileName(curValue); else
 		if (curParam == "-ml") {
 			intValue = toi(curValue);
 			if (intValue == -1) {
 				warningsQueue.pb("configuration file :: parameter \"" + curParam + "\" - expected value is a number but \"" + curValue + "\" found");
 				continue;
 			}
-			params.ml = intValue;
+			params->setMemoryLimit(intValue);
 		} else
-		if (curParam == "-o") params.o = curValue; else
-		if (curParam == "-p") params.p = curValue; else
+		if (curParam == "-o") params->setOutputFileName(curValue); else
+		if (curParam == "-p") params->setProgramFileName(curValue); else
 		if (curParam == "-tc") {
 			intValue = toi(curValue);
 			if (intValue == -1) {
 				warningsQueue.pb("configuration file :: parameter \"" + curParam + "\" - expected value is a number but \"" + curValue + "\" found");
 				continue;
 			}
-			params.tc = intValue;
+			params->setTestsCount(intValue);
 		} else
-		if (curParam == "-tim") params.tim.full = curValue; else
+		if (curParam == "-tim") params->getInputFileMask()->setFileMask(curValue); else
 		if (curParam == "-tl") {
 			intValue = toi(curValue);
 			if (intValue == -1) {
 				warningsQueue.pb("parameter \"" + curParam + "\" - expected value is a number but \"" + curValue + "\" found in configuration file");
 				continue;
 			}
-			params.tl = intValue;
+			params->setTimeLimit(intValue);
 		} else
-		if (curParam == "-tom") params.tom.full = curValue; else 
+		if (curParam == "-tom") params->getOutputFileMask()->setFileMask(curValue); else 
 		if (curParam != "-nowarnings") {
 			ok = false;
 			warningsQueue.pb("parameter \"" + curParam + "\" can not be defined in configuration file");
@@ -212,75 +212,72 @@ void Invocation::loadParams() {
 		if (!flagsDict.count(curParam)) warningsQueue.pb("unknown parameter \"" + curParam + "\" is defined"); else {
 			ok = !definedParams.count(curParam);
 			if (!ok) warningsQueue.pb("parameter \"" + curParam + "\" redefinition. Last definition is accepted");
-			if (curParam == "-help") params.help = true; else
-			if (curParam == "-helpcheckers") params.helpCheckers = true; else
-			if (curParam == "-helpconfig") params.helpConfig = true; else
-			if (curParam == "-helpdefault") params.helpDefault = true; else
-			if (curParam == "-helpmasks") params.helpMasks = true; else {
+			if (curParam == "-help") params->setHelp(true); else
+			if (curParam == "-helpcheckers") params->setHelpCheckers(true); else
+			if (curParam == "-helpconfig") params->setHelpConfig(true); else
+			if (curParam == "-helpdefault") params->setHelpDefault(true); else
+			if (curParam == "-helpmasks") params->setHelpMasks(true); else {
 				curValue = cmdParams[++x];
-				if (curParam == "-c") params.c = curValue; else
-				if (curParam == "-i") params.i = curValue; else
+				if (curParam == "-c") params->setCheckerFileName(curValue); else
+				if (curParam == "-i") params->setInputFileName(curValue); else
 				if (curParam == "-ml") {
 					intValue = toi(curValue);
 					if (intValue == -1) {
 						warningsQueue.pb("parameter \"" + curParam + "\" - expected value is a number but \"" + curValue + "\" found");
 						goto rept;
 					}
-					params.ml = intValue;
+					params->setMemoryLimit(intValue);
 				} else
-				if (curParam == "-o") params.o = curValue; else
-				if (curParam == "-p") params.p = curValue; else
+				if (curParam == "-o") params->setOutputFileName(curValue); else
+				if (curParam == "-p") params->setProgramFileName(curValue); else
 				if (curParam == "-tc") {
 					intValue = toi(curValue);
 					if (intValue == -1) {
 						warningsQueue.pb("parameter \"" + curParam + "\" - expected value is a number but \"" + curValue + "\" found");
 						goto rept;
 					}
-					params.tc = intValue;
+					params->setTestsCount(intValue);
 				} else
-				if (curParam == "-tim") params.tim.full = curValue; else
+				if (curParam == "-tim") params->getInputFileMask()->setFileMask(curValue); else
 				if (curParam == "-tl") {
 					intValue = toi(curValue);
 					if (intValue == -1) {
 						warningsQueue.pb("parameter \"" + curParam + "\" - expected value is a number but \"" + curValue + "\" found");
 						goto rept;
 					}
-					params.tl = intValue;
+					params->setTimeLimit(intValue);
 				} else
-				if (curParam == "-tom") params.tom.full = curValue;
+				if (curParam == "-tom") params->getOutputFileMask()->setFileMask(curValue);
 			}
 			if (ok) definedParams.insert(curParam);
 		}
 rept:
 		++x;
 	}
-	params.tim.parse();
-	params.tom.parse();
-	GetCurrentDirectoryA(1024, info.workingDirectory);
-	info.invocationDirectory = info.workingDirectory;
 }
 
 void Invocation::terminate(bool needWarnings = true) {
 	if (needWarnings) cleanWarningsQueue();
 	if (environmentCreated) clearEnvironment();
 #ifdef _DEBUG
-	setColor(CC_LIGHTRED);
+	setConsoleTextColor(CC_LIGHTRED);
 	cout << endl << "\t\tTERMINATING!!!" << endl << endl;
-	setColor(CC_LIGHTGRAY);
+	setConsoleTextColor(CC_LIGHTGRAY);
 #else
 	exit(0);
 #endif
 }
 
 void Invocation::createEnvironment() {
-	if (params.p.rfind(".exe") != params.p.length() - 4) error("Only executable files are accepted to testing");
-	if (!CreateDirectoryA(info.code.c_str(), NULL) && !CreateDirectoryA(info.code.c_str(), NULL)) error("Can not create temporary directory for testing environment");
+	string tmp = params->getProgramFileName();
+	if (tmp.rfind(".exe") != tmp.length() - 4) error("Only executable files are accepted to testing");
+	/* if (!CreateDirectoryA(info.code.c_str(), NULL) && !CreateDirectoryA(info.code.c_str(), NULL)) error("Can not create temporary directory for testing environment");
 	if (!params.c.find("std::")) {
 		//ToDo: create resource
 	} else 
 	if (params.c.rfind(".exe") != params.c.length() - 4) error("Checkers must be executable files"); else {
 		
-	}
+	} */
 }
 
 void Invocation::clearEnvironment() {
@@ -293,7 +290,7 @@ void Invocation::error(string msg) {
 }
 
 void Invocation::showHelp() {
-	if (params.help) {
+	if (params->getHelp()) {
 		cout << endl << "  ATester is a judge system for testing programs under MS Windows." << endl << endl;
 		cout << "  Program must be run in the following way:" << endl << "\tatester [flags]" << endl;
 		cout << "  ATester uses some default settings, running with specified flags will change these settings. More info about the default settings you can get by running with the flag \"-helpdefault\"." << endl << endl;
@@ -318,7 +315,7 @@ void Invocation::showHelp() {
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-help\" caused ignoring other flags");
 		terminate(false);
 	}
-	if (params.helpCheckers) {
+	if (params->getHelpCheckers()) {
 		cout << "  Checker is a special program that evaluates output of your program. ATester works with Testlib (http://code.google.com/p/testlib) checkers. Your checker should use this library or be compatible with it." << endl;
 		cout << "  Time limit for checkers is 10 seconds, memory limit is available memory on testing machine." << endl << endl;
 		cout << "  We hardly recommend to use different standart checkers which are included in ATester to prevent errors. Here are they:" << endl;
@@ -341,7 +338,7 @@ void Invocation::showHelp() {
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-helpcheckers\" caused ignoring other flags");
 		terminate(false);
 	}
-	if (params.helpConfig) {
+	if (params->getHelpConfig()) {
 		cout << "  Configuration file contains specified settings. You must fit the format of the file and parameters declaration to change default settings." << endl;
 		cout << "  Note that all lines in file are being analyzed separately, so if the line has broken format it will not impact on other lines." << endl << endl;
 		cout << "  Format of this file is taken from the international standart, so lines beginning with \";\" are considered to be comments." << endl;
@@ -360,24 +357,25 @@ void Invocation::showHelp() {
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-helpconfig\" caused ignoring other flags");
 		terminate(false);
 	}
-	if (params.helpDefault) {
-		parameters cur = parameters();
+	if (params->getHelpDefault()) {
+		Parameters * cur = new Parameters();
 		cout << "  ATester uses some default parameters, so you can run ATester using command \"atester\" and testing will be run, but values of parameters will be following:" << endl;
-		cout << "\t-c           = " << cur.c << " (more info about the checkers you can get by running with the flag \"-helpcheckers\")" << endl;
-		cout << "\t-cfgfile     = " << cur.CFGfile << " (more info about the configuration file you can get by running with the flag \"-helpconfig\")" << endl;
-		cout << "\t-i           = " << cur.i << endl;
-		cout << "\t-ml          = " << cur.ml << endl;
+		cout << "\t-c           = " << cur->getCheckerFileName() << " (more info about the checkers you can get by running with the flag \"-helpcheckers\")" << endl;
+		cout << "\t-cfgfile     = " << cur->getCFGFileName() << " (more info about the configuration file you can get by running with the flag \"-helpconfig\")" << endl;
+		cout << "\t-i           = " << cur->getInputFileName() << endl;
+		cout << "\t-ml          = " << cur->getMemoryLimit() << endl;
 		cout << "\t-nowarnings  = FALSE (warnings are shown by default)" << endl;
-		cout << "\t-o           = " << cur.o << endl;
-		cout << "\t-p           = " << cur.p << endl;
+		cout << "\t-o           = " << cur->getOutputFileName() << endl;
+		cout << "\t-p           = " << cur->getProgramFileName() << endl;
 		cout << "\t-tc          = 0 (ATester automatically detects number of tests)" << endl;
-		cout << "\t-tim         = " << cur.tim.full << " (more info about the test data file masks you can get by running with the flag \"-helpmasks\")" << endl;
-		cout << "\t-tl          = " << cur.tl << endl;
-		cout << "\t-tom         = " << cur.tom.full << " (more info about the test data file masks you can get by running with the flag \"-helpmasks\")" << endl << endl;
+		cout << "\t-tim         = " << cur->getInputFileMask()->getFileMask() << " (more info about the test data file masks you can get by running with the flag \"-helpmasks\")" << endl;
+		cout << "\t-tl          = " << cur->getTimeLimit() << endl;
+		cout << "\t-tom         = " << cur->getOutputFileMask()->getFileMask() << " (more info about the test data file masks you can get by running with the flag \"-helpmasks\")" << endl << endl;
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-helpdefault\" caused ignoring other flags");
+		delete cur;
 		terminate(false);
 	}
-	if (params.helpMasks) {
+	if (params->getHelpMasks()) {
 		cout << "  File masks are used to unify format of filenames of test data files." << endl;
 		cout << "  Usually test data files have common way of constructing filename - they contain some similar parts and a number of test to differentiate them." << endl << endl;
 		cout << "  To specify mask you should put \"?\" symbols instead of number of test in the mask. Note that sometimes test data files are named like \"01.in\" and the number have leading zeros, so the number has at least 2 decimal places, so you should put 2 \"?\" symbols and the mask will be following: \"??.in\"." << endl;
