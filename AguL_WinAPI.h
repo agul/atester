@@ -28,3 +28,6 @@ enum ConsoleTextColor {
 
 bool fileExists(string filename);
 void setConsoleTextColor(ConsoleTextColor color);
+bool createDirectory(string directoryName);
+bool copyFile(string oldName, string newName);
+bool deleteDirectory(string directoryName, bool noRecycleBin);

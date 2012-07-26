@@ -6,6 +6,7 @@
 class Invocation {
 public:
 	Invocation(int argc, char ** argv);
+	~Invocation();
 
 	void getNoWarnings();
 	void getCFGFileName();

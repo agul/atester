@@ -17,8 +17,10 @@ int main(int argc, char ** argv) {
 	cleanWarningsQueue();
 	Attempt->createEnvironment();
 	//Attempt->runTesting();
-	//Attempt->clearEnvironment();
+	Attempt->clearEnvironment();
 	//Attempt->outputInfo();
+
+	delete Attempt;
 
 #ifdef _DEBUG
 	system("pause");

@@ -62,6 +62,11 @@ Invocation::Invocation(int argc, char ** argv) {
 	}
 }
 
+Invocation::~Invocation() {
+	delete params;
+	delete info;
+}
+
 void Invocation::getNoWarnings() {
 	int kk = cmdParams.size();
 	for (int i = 0; i < kk; ++i)
@@ -259,6 +264,7 @@ rept:
 void Invocation::terminate(bool needWarnings = true) {
 	if (needWarnings) cleanWarningsQueue();
 	if (environmentCreated) clearEnvironment();
+	delete this;
 #ifdef _DEBUG
 	setConsoleTextColor(CC_LIGHTRED);
 	cout << endl << "\t\tTERMINATING!!!" << endl << endl;
@@ -271,17 +277,22 @@ void Invocation::terminate(bool needWarnings = true) {
 void Invocation::createEnvironment() {
 	string tmp = params->getProgramFileName();
 	if (tmp.rfind(".exe") != tmp.length() - 4) error("Only executable files are accepted to testing");
-	/* if (!CreateDirectoryA(info.code.c_str(), NULL) && !CreateDirectoryA(info.code.c_str(), NULL)) error("Can not create temporary directory for testing environment");
-	if (!params.c.find("std::")) {
-		//ToDo: create resource
+	if (!createDirectory(info->getInvocationDirectory())) error("Cannot create temporary directory for testing environment");
+	environmentCreated = true;
+	if (!copyFile(tmp, info->getProgramPath())) error("Cannot copy program file to working directory");
+	tmp = params->getCheckerFileName();
+	if (!tmp.find("std::")) {
+		tmp.erase(tmp.begin(), tmp.begin() + 5);
+		//ToDo: resources
 	} else 
-	if (params.c.rfind(".exe") != params.c.length() - 4) error("Checkers must be executable files"); else {
-		
-	} */
+	if (tmp.rfind(".exe") != tmp.length() - 4) error("Checkers must be executable files"); else
+	if (!copyFile(tmp, info->getCheckerPath())) error("Cannot copy checker file to working directory");
 }
 
 void Invocation::clearEnvironment() {
-
+	//killChecker
+	//killProgram
+	if (!deleteDirectory(info->getInvocationDirectory(), false)) error("Cannot delete working directory");
 }
 
 void Invocation::error(string msg) {
