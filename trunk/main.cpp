@@ -15,11 +15,13 @@ int main(int argc, char ** argv) {
 	Attempt->loadParams();
 	Attempt->showHelp();
 	cleanWarningsQueue();
-	//Attempt->createEnvironment();
+	Attempt->createEnvironment();
 	//Attempt->runTesting();
 	//Attempt->clearEnvironment();
 	//Attempt->outputInfo();
 
+#ifdef _DEBUG
 	system("pause");
+#endif
 	return 0;
 }

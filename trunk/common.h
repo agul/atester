@@ -82,6 +82,7 @@ inline bool fileExists(string filename);
 inline bool isDelim(char ch);
 void trim(string& s);
 string getNum(int n, int mask);
+LPCWSTR makeLPCWSTR(const char * s);
 
 void showStartUpInfo();
 void initializeFlags();

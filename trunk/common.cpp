@@ -59,3 +59,11 @@ int toi(string s) {
 		if (s[i] >= '0' && s[i] <= '9') result = result * 10 + s[i] - 48; else return -1;
 	return result;
 }
+
+LPCWSTR makeLPCWSTR(const char * s) {
+	int ls = strlen(s);
+	WCHAR t[1024];
+	MultiByteToWideChar(0, 0, s, ls, t, 1024);
+	LPCWSTR result = t;
+	return result;
+}
