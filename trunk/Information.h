@@ -5,61 +5,21 @@
 class Information {
 private:
 	int timePeak, memoryPeak;
-	OutcomeType outcome;
-	string invocationID, invocationCode;
-	bool isCFGFileSet;
-	string invocationDirectory, checkerPath, programPath;
+	OUTCOME_TYPE outcome;
 public:
 
 	Information() {
-		invocationID = toa((int)GetCurrentProcessId());
-		invocationCode = "ATester Invocation " + invocationID;
 		memoryPeak = timePeak = 0;
 		outcome = OT_UD;
-		isCFGFileSet = false;
-		char tmp[1024];
-		GetCurrentDirectoryA(1024, tmp);
-		string workingDirectory = tmp;
-		invocationDirectory = workingDirectory + "\\" + invocationCode + "\\";
-		checkerPath = invocationDirectory + "check.exe";
-		programPath = invocationDirectory + "task.exe";
 	}
 
 	~Information() {}
 
-	string getInvocationDirectory() {
-		return invocationDirectory;
-	}
-
-	string getCheckerPath() {
-		return checkerPath;
-	}
-
-	string getProgramPath() {
-		return programPath;
-	}
-
-	bool getIsCFGFileSet() {
-		return isCFGFileSet;
-	}
-
-	void setIsCFGFileSet(bool isCFGFileSet) {
-		this->isCFGFileSet = isCFGFileSet;
-	}
-
-	string getInvocationCode() {
-		return invocationCode;
-	}
-
-	string getInvocationID() {
-		return invocationID;
-	}
-
-	OutcomeType getOutcome() {
+	OUTCOME_TYPE getOutcome() {
 		return outcome;
 	}
 
-	void setOutcome(OutcomeType outcome) {
+	void setOutcome(OUTCOME_TYPE outcome) {
 		this->outcome = outcome;
 	}
 

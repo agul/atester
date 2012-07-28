@@ -26,7 +26,7 @@ using namespace std;
 
 const int OUTCOME_COUNT = 7;
 
-enum OutcomeType {
+enum OUTCOME_TYPE {
 	OT_UD,
 	OT_AC,
 	OT_WA,
@@ -36,7 +36,7 @@ enum OutcomeType {
 	OT_IE
 };
 
-const string OutcomeName[OUTCOME_COUNT] = {
+const string OUTCOME_NAME[OUTCOME_COUNT] = {
 	"Checking...",
 	"Accepted!",
 	"Wrong Answer",
@@ -46,7 +46,7 @@ const string OutcomeName[OUTCOME_COUNT] = {
 	"Internal Error"
 };
 
-const ConsoleTextColor OutcomeColor[OUTCOME_COUNT] = {
+const ConsoleTextColor OUTCOME_COLOR[OUTCOME_COUNT] = {
 	CC_DARKGRAY,
 	CC_GREEN,
 	CC_LIGHTRED,
@@ -54,6 +54,22 @@ const ConsoleTextColor OutcomeColor[OUTCOME_COUNT] = {
 	CC_LIGHTRED,
 	CC_LIGHTRED,
 	CC_YELLOW
+};
+
+const int ERROR_COUNT = 4;
+
+enum ERROR_CODE {
+	EC_OK,
+	EC_TEST_DATA_FILE_NOT_FOUND,
+	EC_TESTING_PROGRAM_FILE_CORRUPTED,
+	EC_CHECKER_FILE_CORRUPTED
+};
+
+const string ERROR_MESSAGES[ERROR_COUNT] = {
+	"Success.",
+	"Test data file had not been found.",
+	"Testing program file had been corrupted.",
+	"Checker program file had been corrupted."
 };
 
 string getNum(int n, int mask);

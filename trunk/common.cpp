@@ -1,4 +1,4 @@
-#include "common.h"
+#include "Common.h"
 
 string getNum(int n, int mask) {
 	string result = toa(n);
