@@ -1,5 +1,6 @@
-#include "common.h"
-#include "invocation.h"
+#include "Common.h"
+#include "Invocation.h"
+#include "Tester.h"
 
 set<string> flagsDict, definedParams;
 vector<string> warningsQueue;
@@ -53,7 +54,7 @@ Invocation::Invocation(int argc, char ** argv) {
 	cout << "Start time: " << getNum(curTime->tm_hour, 2) << ":" << getNum(curTime->tm_min, 2) << ":" << getNum(curTime->tm_sec, 2) << " " << getNum(curTime->tm_mday, 2) << "." << getNum(curTime->tm_mon, 2) << "." << (curTime->tm_year + 1900) << endl;
 	params = new Parameters();
 	info = new Information();
-	cout << "Invoker ID: " << info->getInvocationID() << endl;
+	cout << "Invoker ID: " << params->getInvocationID() << endl;
 	string s, t;
 	for (int i = 1; i < argc; ++i) {
 		s = (string)argv[i];
@@ -110,8 +111,8 @@ void Invocation::getCFGFileName() {
 	for (int i = 0; i < kk; ++i)
 		if (cmdParams[i] == "-cfgfile") {
 			params->setCFGFileName(cmdParams[i + 1]);
-			if (info->getIsCFGFileSet()) warningsQueue.pb("argument " + toa(i + 1) + " :: parameter \"-cfgfile\" redefinition. Last definition is accepted");
-			info->setIsCFGFileSet(true);
+			if (params->getIsCFGFileSet()) warningsQueue.pb("argument " + toa(i + 1) + " :: parameter \"-cfgfile\" redefinition. Last definition is accepted");
+			params->setIsCFGFileSet(true);
 		}
 }
 
@@ -120,7 +121,7 @@ void Invocation::loadCFGFile() {
 	in.open(params->getCFGFileName());
 	if (in.fail()) {
 		in.close();
-		if (info->getIsCFGFileSet()) warningsQueue.pb("configuration file \"" + params->getCFGFileName() + "\" was not found");
+		if (params->getIsCFGFileSet()) warningsQueue.pb("configuration file \"" + params->getCFGFileName() + "\" was not found");
 		return;
 	}
 	string s, curParam, curValue;
@@ -265,34 +266,40 @@ void Invocation::terminate(bool needWarnings = true) {
 	if (needWarnings) cleanWarningsQueue();
 	if (environmentCreated) clearEnvironment();
 	delete this;
-#ifdef _DEBUG
-	setConsoleTextColor(CC_LIGHTRED);
-	cout << endl << "\t\tTERMINATING!!!" << endl << endl;
-	setConsoleTextColor(CC_LIGHTGRAY);
-#else
 	exit(0);
-#endif
 }
 
 void Invocation::createEnvironment() {
 	string tmp = params->getProgramFileName();
 	if (tmp.rfind(".exe") != tmp.length() - 4) error("Only executable files are accepted to testing");
-	if (!createDirectory(info->getInvocationDirectory())) error("Cannot create temporary directory for testing environment");
+	if (!createDirectory(params->getInvocationDirectory())) error("Cannot create temporary directory for testing environment");
 	environmentCreated = true;
-	if (!copyFile(tmp, info->getProgramPath())) error("Cannot copy program file to working directory");
+	if (!copyFile(tmp, params->getProgramPath())) error("Cannot copy program file to working directory");
 	tmp = params->getCheckerFileName();
 	if (!tmp.find("std::")) {
 		tmp.erase(tmp.begin(), tmp.begin() + 5);
 		//ToDo: resources
 	} else 
 	if (tmp.rfind(".exe") != tmp.length() - 4) error("Checkers must be executable files"); else
-	if (!copyFile(tmp, info->getCheckerPath())) error("Cannot copy checker file to working directory");
+	if (!copyFile(tmp, params->getCheckerPath())) error("Cannot copy checker file to working directory");
+}
+
+void Invocation::runTesting() {
+	Tester * curTest = new Tester();
+	ERROR_CODE errorCode = curTest->runTest(1, params, info);
+	if (errorCode) {
+		delete curTest;
+		error("Test 1: " + ERROR_MESSAGES[errorCode] + "\nTesting stopped.");
+	}
+
+	delete curTest;
 }
 
 void Invocation::clearEnvironment() {
 	//killChecker
 	//killProgram
-	if (!deleteDirectory(info->getInvocationDirectory(), false)) error("Cannot delete working directory");
+	if (!deleteDirectory(params->getInvocationDirectory(), false)) error("Cannot delete working directory");
+	environmentCreated = false;
 }
 
 void Invocation::error(string msg) {

@@ -1,5 +1,5 @@
-#include "common.h"
-#include "invocation.h"
+#include "Common.h"
+#include "Invocation.h"
 
 int main(int argc, char ** argv) {
 	cin.sync_with_stdio(0);
@@ -16,11 +16,11 @@ int main(int argc, char ** argv) {
 	Attempt->showHelp();
 	cleanWarningsQueue();
 	Attempt->createEnvironment();
-	//Attempt->runTesting();
+	Attempt->runTesting();
 	Attempt->clearEnvironment();
 	//Attempt->outputInfo();
 
-	delete Attempt;
+	Attempt->terminate(true);
 
 #ifdef _DEBUG
 	system("pause");

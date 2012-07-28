@@ -14,6 +14,7 @@ public:
 	void loadParams();
 
 	void createEnvironment();
+	void runTesting();
 	void clearEnvironment();
 	void terminate(bool needWarnings);
 	

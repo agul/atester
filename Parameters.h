@@ -52,15 +52,15 @@ public:
 
 class Parameters {
 private:
-	bool help, helpCheckers, helpConfig, helpDefault, helpMasks;
+	bool help, helpCheckers, helpConfig, helpDefault, helpMasks, isCFGFileSet;
 	int timeLimit, testsCount, memoryLimit;
-	string checkerFileName, CFGFileName, inputFileName, outputFileName, programFileName;
+	string checkerFileName, CFGFileName, inputFileName, outputFileName, programFileName, invocationID, invocationCode, invocationDirectory, checkerPath, programPath;
 	TestFileMask * inputFileMask, * outputFileMask;
 public:
 
 	Parameters() {
 		checkerFileName = "std::fcmp";
-		help = helpCheckers = helpMasks = helpDefault = helpConfig = false;
+		help = helpCheckers = helpMasks = helpDefault = helpConfig = isCFGFileSet = false;
 		inputFileMask = new TestFileMask("??");
 		inputFileName = "input.txt";
 		CFGFileName = "atester.cfg";
@@ -70,11 +70,47 @@ public:
 		programFileName = "task.exe";
 		testsCount = 0;
 		timeLimit = 2000;
+		invocationID = toa((int)GetCurrentProcessId());
+		invocationCode = "ATester Invocation " + invocationID;
+		char tmp[1024];
+		GetCurrentDirectoryA(1024, tmp);
+		string workingDirectory = tmp;
+		invocationDirectory = workingDirectory + "\\" + invocationCode + "\\";
+		checkerPath = invocationDirectory + "check.exe";
+		programPath = invocationDirectory + "task.exe";
 	}
 
 	~Parameters() {
 		delete inputFileMask;
 		delete outputFileMask;
+	}
+	
+	string getInvocationDirectory() {
+		return invocationDirectory;
+	}
+
+	string getCheckerPath() {
+		return checkerPath;
+	}
+
+	string getProgramPath() {
+		return programPath;
+	}
+
+	bool getIsCFGFileSet() {
+		return isCFGFileSet;
+	}
+
+	void setIsCFGFileSet(bool isCFGFileSet) {
+		this->isCFGFileSet = isCFGFileSet;
+	}
+
+	string getInvocationCode() {
+		return invocationCode;
+	}
+
+	string getInvocationID() {
+		return invocationID;
 	}
 
 	TestFileMask * getInputFileMask() {
