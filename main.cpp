@@ -8,22 +8,18 @@ int main(int argc, char ** argv) {
 	showStartUpInfo();
 	initializeFlags();
 
-	Invocation * Attempt = new Invocation(argc, argv);
-	Attempt->getCFGFileName();
-	Attempt->getNoWarnings();
-	Attempt->loadCFGFile();
-	Attempt->loadParams();
-	Attempt->showHelp();
+	Invocation * invocation = new Invocation(argc, argv);
+	invocation->getCFGFileName();
+	invocation->getNoWarnings();
+	invocation->loadCFGFile();
+	invocation->loadParams();
+	invocation->showHelp();
 	cleanWarningsQueue();
-	Attempt->createEnvironment();
-	Attempt->runTesting();
-	Attempt->clearEnvironment();
-	//Attempt->outputInfo();
+	invocation->createEnvironment();
+	invocation->runTesting();
+	invocation->clearEnvironment();
+	invocation->outputInfo();
 
-	Attempt->terminate(true);
-
-#ifdef _DEBUG
-	system("pause");
-#endif
+	invocation->terminate(true, true);
 	return 0;
 }

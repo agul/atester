@@ -1,14 +1,21 @@
 #include "AguL_WinAPI.h"
 
 bool fileExists(string filename) {
-	ifstream in;
-	in.open(filename);
-	in.close();
-	return !in.fail();
+	ifstream * in = new ifstream(filename);
+	in->close();
+	bool result = !in->fail();
+	delete in;
+	return result;
 }
 
-void setConsoleTextColor(ConsoleTextColor color) {
+void setConsoleTextColor(COLOR color) {
 	SetConsoleTextAttribute(hStdOut, (WORD)color);
+}
+
+void printColoredText(string text, COLOR color) {
+	setConsoleTextColor(color);
+	cout << text;
+	setConsoleTextColor(DEFAULT_COLOR);
 }
 
 bool createDirectory(string directoryName) {

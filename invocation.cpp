@@ -9,6 +9,7 @@ bool showWarnings = true, environmentCreated = false;
 void initializeFlags() {
 	flagsDict.insert("-c");
 	flagsDict.insert("-cfgfile");
+	flagsDict.insert("-checkertl");
 	flagsDict.insert("-help");
 	flagsDict.insert("-helpcheckers");
 	flagsDict.insert("-helpconfig");
@@ -27,16 +28,14 @@ void initializeFlags() {
 
 void generateWarning(string msg) {
 	if (showWarnings) {
-		setConsoleTextColor(CC_YELLOW);
-		cout << "Warning: " << msg << endl << endl;
-		setConsoleTextColor(CC_LIGHTGRAY);
+		printColoredText(" Warning: " + msg, CC_YELLOW);
+		cout << endl;
 	}
 }
 
 void generateError(string msg) {
-	setConsoleTextColor(CC_LIGHTRED);
-	cout << "Error: " << msg << endl << endl;
-	setConsoleTextColor(CC_LIGHTGRAY);
+	printColoredText(" Error: " + msg, CC_LIGHTRED);
+	cout << endl;
 }
 
 void cleanWarningsQueue() {
@@ -51,10 +50,13 @@ void cleanWarningsQueue() {
 Invocation::Invocation(int argc, char ** argv) {
 	time_t nowTime = time(0);
 	struct tm * curTime = localtime(&nowTime);
-	cout << "Start time: " << getNum(curTime->tm_hour, 2) << ":" << getNum(curTime->tm_min, 2) << ":" << getNum(curTime->tm_sec, 2) << " " << getNum(curTime->tm_mday, 2) << "." << getNum(curTime->tm_mon, 2) << "." << (curTime->tm_year + 1900) << endl;
+	cout << " Start time: ";
+	printColoredText(getNum(curTime->tm_hour, 2) + ":" + getNum(curTime->tm_min, 2) + ":" + getNum(curTime->tm_sec, 2) + " " + getNum(curTime->tm_mday, 2) + "." + getNum(curTime->tm_mon, 2) + "." + toa((curTime->tm_year + 1900)) + "\n", CC_CYAN);
 	params = new Parameters();
 	info = new Information();
-	cout << "Invoker ID: " << params->getInvocationID() << endl;
+	cout << " Invoker ID: ";
+	printColoredText(params->getInvocationID(), CC_CYAN);
+	cout << endl << endl;
 	string s, t;
 	for (int i = 1; i < argc; ++i) {
 		s = (string)argv[i];
@@ -77,9 +79,13 @@ void Invocation::getNoWarnings() {
 		}
 	string s1, s2, s;
 	int x, ls;
-	ifstream in;
-	in.open(params->getCFGFileName());
-	while (getline(in, s)) {
+	ifstream * in = new ifstream(params->getCFGFileName());
+	if (in->fail()) {
+		in->close();
+		delete in;
+		return;
+	}
+	while (getline(*in, s)) {
 		trim(s);
 		if (s[0] == '[' || s[0] == ';') continue;
 		ls = s.length();
@@ -102,7 +108,8 @@ void Invocation::getNoWarnings() {
 			break;
 		}
 	}
-	in.close();
+	in->close();
+	delete in;
 }
 
 void Invocation::getCFGFileName() {
@@ -117,17 +124,17 @@ void Invocation::getCFGFileName() {
 }
 
 void Invocation::loadCFGFile() {
-	ifstream in;
-	in.open(params->getCFGFileName());
-	if (in.fail()) {
-		in.close();
+	ifstream * in = new ifstream(params->getCFGFileName());
+	if (in->fail()) {
+		in->close();
+		delete in;
 		if (params->getIsCFGFileSet()) warningsQueue.pb("configuration file \"" + params->getCFGFileName() + "\" was not found");
 		return;
 	}
 	string s, curParam, curValue;
 	int ls, x;
 	bool ok;
-	while (getline(in, s)) {
+	while (getline(*in, s)) {
 		trim(s);
 		if (s[0] == '[' || s[0] == ';') continue;
 		ls = s.length();
@@ -162,6 +169,14 @@ void Invocation::loadCFGFile() {
 		if (!ok) warningsQueue.pb("parameter \"" + curParam + "\" redefinition if configuration file. Last definition is accepted");
 		int intValue;
 		if (curParam == "-c") params->setCheckerFileName(curValue); else
+		if (curParam == "-checkertl") {
+			intValue = toi(curValue);
+			if (intValue == -1) {
+				warningsQueue.pb("parameter \"" + curParam + "\" - expected value is a number but \"" + curValue + "\" found in configuration file");
+				continue;
+			}
+			params->setCheckerTimeLimit(intValue);
+		} else
 		if (curParam == "-i") params->setInputFileName(curValue); else
 		if (curParam == "-ml") {
 			intValue = toi(curValue);
@@ -197,7 +212,8 @@ void Invocation::loadCFGFile() {
 		}
 		if (ok) definedParams.insert(curParam);
 	}
-	in.close();
+	in->close();
+	delete in;
 }
 
 void Invocation::loadParams() {
@@ -225,6 +241,14 @@ void Invocation::loadParams() {
 			if (curParam == "-helpmasks") params->setHelpMasks(true); else {
 				curValue = cmdParams[++x];
 				if (curParam == "-c") params->setCheckerFileName(curValue); else
+				if (curParam == "-checkertl") {
+					intValue = toi(curValue);
+					if (intValue == -1) {
+						warningsQueue.pb("parameter \"" + curParam + "\" - expected value is a number but \"" + curValue + "\" found");
+						goto rept;
+					}
+					params->setCheckerTimeLimit(intValue);
+				} else
 				if (curParam == "-i") params->setInputFileName(curValue); else
 				if (curParam == "-ml") {
 					intValue = toi(curValue);
@@ -262,10 +286,11 @@ rept:
 	}
 }
 
-void Invocation::terminate(bool needWarnings = true) {
+void Invocation::terminate(bool needWarnings, bool needDeletingEnvironment) {
 	if (needWarnings) cleanWarningsQueue();
-	if (environmentCreated) clearEnvironment();
+	if (environmentCreated && needDeletingEnvironment) clearEnvironment();
 	delete this;
+	cout << endl;
 	exit(0);
 }
 
@@ -285,126 +310,426 @@ void Invocation::createEnvironment() {
 }
 
 void Invocation::runTesting() {
-	Tester * curTest = new Tester();
-	ERROR_CODE errorCode = curTest->runTest(1, params, info);
-	if (errorCode) {
-		delete curTest;
-		error("Test 1: " + ERROR_MESSAGES[errorCode] + "\nTesting stopped.");
+	cout << endl;
+	Tester * curTest = new Tester(params, info);
+	int testsCount = params->getTestsCount();
+	if (!params->getInputFileMask()->getDigitsCount() || !params->getOutputFileMask()->getDigitsCount()) testsCount = 1;
+	ERROR_CODE errorCode = EC_OK;
+	OUTCOME_TYPE outcome = OT_UD;
+	bool autoDetectTestsNumber = !testsCount;
+	for (int test = 1; !testsCount || test <= testsCount; ++test) { 
+		errorCode = curTest->runTest(test, autoDetectTestsNumber);
+		if (errorCode) {
+			delete curTest;
+			if (!testsCount && (errorCode == EC_INPUT_DATA_FILE_NOT_FOUND || errorCode == EC_ANSWER_DATA_FILE_NOT_FOUND)) {
+				info->setOutcome(OT_AC);
+				return;
+			}
+			printColoredText("Internal Error", CC_LIGHTMAGENTA);
+			cout << endl;
+			info->setOutcome(OT_IE);
+			info->setComment("Test " + toa(test) + ": " + ERROR_MESSAGES[errorCode]);
+			outputInfo();
+			if (errorCode != EC_CANNOT_TERMINATE_TESTING_PROGRAM && errorCode != EC_CANNOT_TERMINATE_CHECKER) terminate(true, true); else terminate(true, false);
+		}
+		cout << "Time: ";
+		printColoredText(toa(info->getLastTestTime()), CC_LIGHTCYAN);
+		cout << " ms  Memory: ";
+		printColoredText(toa(info->getLastTestMemory()), CC_LIGHTCYAN); 
+		cout << " bytes  ";
+		outcome = info->getOutcome();
+		printColoredText(SHORT_OUTCOME_NAME[outcome], OUTCOME_COLOR[outcome]);
+		cout << endl;
+		if (outcome != OT_UD) {
+			delete curTest;
+			return;
+		}
 	}
-
+	info->setOutcome(OT_AC);
 	delete curTest;
 }
 
 void Invocation::clearEnvironment() {
-	//killChecker
-	//killProgram
 	if (!deleteDirectory(params->getInvocationDirectory(), false)) error("Cannot delete working directory");
 	environmentCreated = false;
 }
 
+void Invocation::outputInfo() {
+	OUTCOME_TYPE outcome = info->getOutcome();
+	if (outcome == OT_UD) return;
+	cout << endl << endl << "  Summary:" << endl << "  ============================" << endl << endl;
+	printColoredText("  " + OUTCOME_NAME[outcome], OUTCOME_COLOR[outcome]);
+	if (outcome == OT_IE) {
+		if (info->getComment() != "") {
+			cout << endl << "  Comment: ";
+			printColoredText(info->getComment(), CC_LIGHTCYAN);
+		}
+		cout << endl << endl;
+		return;
+	}
+	cout << endl << "  Time peak: ";
+	printColoredText(toa(info->getTimePeak()), CC_LIGHTCYAN);
+	cout << " ms " << endl << "  Memory peak: ";
+	printColoredText(toa(info->getMemoryPeak()), CC_LIGHTCYAN);
+	cout << " bytes";
+	if (outcome != OT_AC && info->getComment() != "") {
+		cout << endl << "  Comment: ";
+		printColoredText(info->getComment(), CC_LIGHTCYAN);
+	}
+	cout << endl << endl;
+}
+
 void Invocation::error(string msg) {
 	generateError(msg);
-	terminate(false);
+	terminate(false, true);
 }
 
 void Invocation::showHelp() {
 	if (params->getHelp()) {
-		cout << endl << "  ATester is a judge system for testing programs under MS Windows." << endl << endl;
-		cout << "  Program must be run in the following way:" << endl << "\tatester [flags]" << endl;
-		cout << "  ATester uses some default settings, running with specified flags will change these settings. More info about the default settings you can get by running with the flag \"-helpdefault\"." << endl << endl;
-		cout << "  Available flags are:" << endl;
-		cout << "\t-c <filename>         = specify checker (more info about the checkers you can get by running with the flag \"-helpcheckers\")" << endl;
-		cout << "\t-cfgfile <filename>   = specify configuration file (more info about the configuration file you can get by running with the flag \"-helpconfig\")" << endl;
-		cout << "\t-help                 = show help (this message)" << endl;
-		cout << "\t-helpcheckers         = show help about checkers" << endl;
-		cout << "\t-helpconfig           = show help about configuration file" << endl;
-		cout << "\t-helpdefault          = show help about default settings" << endl;
-		cout << "\t-helpmasks            = show help about test data file masks" << endl;
-		cout << "\t-i <filename>         = specify input filename that uses your program" << endl;
-		cout << "\t-ml <memory-limit>    = specify memory limit (in bytes)" << endl;
-		cout << "\t-nowarnings           = do not show any warnings" << endl;
-		cout << "\t-o <filename>         = specify output filename that uses your program" << endl;
-		cout << "\t-p <filename>         = specify your program filename" << endl;
-		cout << "\t-tc <tests-number>    = specify number of tests. If \"0\" then ATester will automatically detect number of tests" << endl;
-		cout << "\t-tim <file-mask>      = specify input test data file mask (more info about the test data file masks you can get by running with the flag \"-helpmasks\")" << endl;
-		cout << "\t-tl <time-limit>      = specify time limit (in milliseconds)" << endl;
-		cout << "\t-tom <file-mask>      = specify output test data file mask (more info about the test data file masks you can get by running with the flag \"-helpmasks\")" << endl << endl;
-		cout << "  Example of arguments line:" << endl << "\tatester -p task.exe -i task.in -o task.out -tl 2000 -nowarnings" << endl << "  Note that order of flags is not important." << endl << endl;
+		cout << endl << "  Help" << endl << "  ========================================================" << endl << endl;
+		cout << "  ATester is a judge system for testing programs under MS Windows." << endl << endl << "  Program must be run in the following way:" << endl << "\t";
+		printColoredText("atester [flags]", CC_LIGHTMAGENTA);
+		cout << endl << "  ATester uses some default settings, running with specified flags will change these settings. More info about the default settings you can get by running with the flag ";
+		printColoredText("-helpdefault", CC_BROWN);			
+		cout << "." << endl << endl << "  Available flags are:" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-c <filename>", CC_LIGHTMAGENTA);
+		cout << " = specify checker (more info about the checkers you can get by running with the flag ";
+		printColoredText("-helpcheckers", CC_BROWN);
+		cout << ")" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-cfgfile <filename>", CC_LIGHTMAGENTA);
+		cout << " = specify configuration file (more info about the configuration file you can get by running with the flag ";
+		printColoredText("-helpconfig", CC_BROWN);
+		cout << ")" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-checkertl <checker-time-limit>", CC_LIGHTMAGENTA);
+		cout << " = specify time limit for checker" << endl << endl;
+
+		cout << "\t-";
+		printColoredText("help", CC_LIGHTMAGENTA);
+		cout << " = show help (this message)" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-helpcheckers", CC_LIGHTMAGENTA);
+		cout << " = show help about checkers" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-helpconfig", CC_LIGHTMAGENTA);
+		cout << " = show help about configuration file" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-helpdefault", CC_LIGHTMAGENTA);
+		cout << " = show help about default settings" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-helpmasks", CC_LIGHTMAGENTA);
+		cout << " = show help about test data file masks" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-i <filename>", CC_LIGHTMAGENTA);
+		cout << " = specify input filename that uses your program" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-ml <memory-limit>", CC_LIGHTMAGENTA);
+		cout << " = specify memory limit (in bytes)" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-nowarnings", CC_LIGHTMAGENTA);
+		cout << " = do not show any warnings" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-o <filename>", CC_LIGHTMAGENTA);
+		cout << " = specify output filename that uses your program" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-p <filename>", CC_LIGHTMAGENTA);
+		cout << " = specify your program filename" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-tc <tests-number>", CC_LIGHTMAGENTA);
+		cout << " = specify number of tests. If \"0\" then ATester will automatically detect number of tests" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-tim <file-mask>", CC_LIGHTMAGENTA);
+		cout << " = specify input test data file mask (more info about the test data file masks you can get by running with the flag ";
+		printColoredText("-helpmasks", CC_BROWN);
+		cout << ")" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-tl <time-limit>", CC_LIGHTMAGENTA);
+		cout << " = specify time limit (in milliseconds)" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-tom <file-mask>", CC_LIGHTMAGENTA);
+		cout << " = specify output test data file mask (more info about the test data file masks you can get by running with the flag ";
+		printColoredText("-helpmasks", CC_BROWN);
+		cout << ")" << endl << endl;
+
+		cout << "  Example of arguments line:" << endl << "\t";
+		printColoredText("atester -p task.exe -i task.in -o task.out -tl 2000 -nowarnings", CC_LIGHTGREEN);
+		cout << endl << "  Note that order of flags is not important." << endl << endl;
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-help\" caused ignoring other flags");
-		terminate(false);
+		terminate(false, true);
 	}
 	if (params->getHelpCheckers()) {
-		cout << "  Checker is a special program that evaluates output of your program. ATester works with Testlib (http://code.google.com/p/testlib) checkers. Your checker should use this library or be compatible with it." << endl;
-		cout << "  Time limit for checkers is 10 seconds, memory limit is available memory on testing machine." << endl << endl;
-		cout << "  We hardly recommend to use different standart checkers which are included in ATester to prevent errors. Here are they:" << endl;
-		cout << "\tstd::acmp   = compares two doubles, maximal absolute error = 1e-6" << endl;
-		cout << "\tstd::dcmp   = compares two doubles, maximal absolute or relative error = 1e-6" << endl;
-		cout << "\tstd::fcmp   = compares files as sequence of lines" << endl;
-		cout << "\tstd::hcmp   = compares two signed huge integers" << endl;
-		cout << "\tstd::icmp   = compares two signed int numbers" << endl;
-		cout << "\tstd::lcmp   = compares files as sequence of tokens in lines" << endl;
-		cout << "\tstd::ncmp   = compares ordered sequences of signed long long numbers" << endl;
-		cout << "\tstd::rcmp   = compares two doubles, maximal absolute error = 1.5 * 1e-5" << endl;
-		cout << "\tstd::rcmp4  = compares two sequences of doubles, max absolute or relative error = 1e-4" << endl;
-		cout << "\tstd::rcmp6  = compares two sequences of doubles, max absolute or relative error = 1e-6" << endl;
-		cout << "\tstd::rcmp9  = compares two sequences of doubles, max absolute or relative error = 1e-9" << endl;
-		cout << "\tstd::rncmp  = compares two sequences of doubles, maximal absolute error = 1.5 * 1e-5" << endl;
-		cout << "\tstd::wcmp   = compares sequences of tokens" << endl;
-		cout << "\tstd::yesno  = YES or NO (case insensetive)" << endl << endl;
-		cout << "  If you want to use standart checker, you should run ATester with flag \"-c <checker-name>\", for example \"atester -c std::wcmp\"." << endl;
-		cout << "  If you want to use your own checker, you should run ATester with flag \"-c <checker-filename>\", for example \"atester -c check.exe\"." << endl << endl;
+		cout << endl << "  Help :: Checkers" << endl << "  ========================================================" << endl << endl;
+		cout << "  Checker is a special program that evaluates output of your program. ATester works with Testlib (";
+		printColoredText("http://code.google.com/p/testlib", CC_BLUE);
+		cout << ") checkers. Your checker should use this library or be compatible with it." << endl;
+		cout << "  Time limit for checkers you can set with flag ";
+		printColoredText("-checkertl", CC_BROWN);
+		cout << " (10 seconds by default), memory limit is the whole available memory on testing machine." << endl << endl;
+		cout << "  We hardly recommend to use different standart checkers which are included in ATester to prevent errors. Here are they:" << endl << endl;
+
+		cout << "\t";
+		printColoredText("std::acmp", CC_LIGHTMAGENTA);
+		cout << "   = compares two doubles, maximal absolute error = 1e-6" << endl;
+
+		cout << "\t";
+		printColoredText("std::dcmp", CC_LIGHTMAGENTA);
+		cout << "   = compares two doubles, maximal absolute or relative error = 1e-6" << endl;
+
+		cout << "\t";
+		printColoredText("std::fcmp", CC_LIGHTMAGENTA);
+		cout << "   = compares files as sequence of lines" << endl;
+
+		cout << "\t";
+		printColoredText("std::hcmp", CC_LIGHTMAGENTA);
+		cout << "   = compares two signed huge integers" << endl;
+
+		cout << "\t";
+		printColoredText("std::icmp", CC_LIGHTMAGENTA);
+		cout << "   = compares two signed int numbers" << endl;
+
+		cout << "\t";
+		printColoredText("std::lcmp", CC_LIGHTMAGENTA);
+		cout << "   = compares files as sequence of tokens in lines" << endl;
+
+		cout << "\t";
+		printColoredText("std::ncmp", CC_LIGHTMAGENTA);
+		cout << "   = compares ordered sequences of signed long long numbers" << endl;
+
+		cout << "\t";
+		printColoredText("std::rcmp", CC_LIGHTMAGENTA);
+		cout << "   = compares two doubles, maximal absolute error = 1.5 * 1e-5" << endl;
+
+		cout << "\t";
+		printColoredText("std::rcmp4", CC_LIGHTMAGENTA);
+		cout << "  = compares two sequences of doubles, max absolute or relative error = 1e-4" << endl;
+
+		cout << "\t";
+		printColoredText("std::rcmp6", CC_LIGHTMAGENTA);
+		cout << "  = compares two sequences of doubles, max absolute or relative error = 1e-6" << endl;
+
+		cout << "\t";
+		printColoredText("std::rcmp9", CC_LIGHTMAGENTA);
+		cout << "  = compares two sequences of doubles, max absolute or relative error = 1e-9" << endl;
+
+		cout << "\t";
+		printColoredText("std::rncmp", CC_LIGHTMAGENTA);
+		cout << "  = compares two sequences of doubles, maximal absolute error = 1.5 * 1e-5" << endl;
+
+		cout << "\t";
+		printColoredText("std::wcmp", CC_LIGHTMAGENTA);
+		cout << "   = compares sequences of tokens" << endl;
+
+		cout << "\t";
+		printColoredText("std::yesno", CC_LIGHTMAGENTA);
+		cout << "  = YES or NO (case insensetive)" << endl << endl;
+
+		cout << "  If you want to use standart checker, you should run ATester with flag ";
+		printColoredText("-c <checker-name>", CC_BROWN);
+		cout << ", for example ";
+		printColoredText("atester -c std::wcmp", CC_LIGHTGREEN);
+		cout << endl;
+		cout << "  If you want to use your own checker, you should run ATester with flag ";
+		printColoredText("-c <checker-filename>", CC_BROWN);
+		cout << ", for example ";
+		printColoredText("atester -c check.exe", CC_LIGHTGREEN);
+		cout << endl << endl;
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-helpcheckers\" caused ignoring other flags");
-		terminate(false);
+		terminate(false, true);
 	}
 	if (params->getHelpConfig()) {
+		cout << endl << "  Help :: Configuration files" << endl << "  ========================================================" << endl << endl;
 		cout << "  Configuration file contains specified settings. You must fit the format of the file and parameters declaration to change default settings." << endl;
 		cout << "  Note that all lines in file are being analyzed separately, so if the line has broken format it will not impact on other lines." << endl << endl;
 		cout << "  Format of this file is taken from the international standart, so lines beginning with \";\" are considered to be comments." << endl;
 		cout << "  Headlines of sections of configuration file do not have any effect on settings." << endl << endl;
 		cout << "  To specify parameter you should write:" << endl;
-		cout << "\t <parameter-name> = <parameter-value>" << endl;
-		cout << "  You can define any available flag (more info about the available flags you can get by running with the flag \"-help\") except help flags (\"-help\", \"-helpcheckers\", \"-helpconfig\", \"-helpdefault\", \"helpmasks\")." << endl;
+		cout << "\t ";
+		printColoredText("<parameter-name> = <parameter-value>", CC_LIGHTMAGENTA);
+		cout << endl;
+		cout << "  You can define any available flag (more info about the available flags you can get by running with the flag ";
+		printColoredText("-help", CC_BROWN);
+		cout << ") except help flags (";
+		printColoredText("-help", CC_BROWN);
+		cout << ", ";
+		printColoredText("-helpcheckers", CC_BROWN);
+		cout << ", ";
+		printColoredText("-helpconfig", CC_BROWN);
+		cout << ", ";
+		printColoredText("-helpdefault", CC_BROWN);
+		cout << ", ";
+		printColoredText("helpmasks", CC_BROWN);
+		cout << ")." << endl;
 		cout << "  If parameter does not have any value to define you should write value \"TRUE\"." << endl << endl;
 		cout << "  Example of configuration file:" << endl;
-		cout << "\t; ATester Configuration" << endl;
-		cout << "\t-p = task.exe" << endl;
-		cout << "\t-i = task.in" << endl;
-		cout << "\t-o = task.out" << endl;
-		cout << "\t-tl = 2000" << endl;
-		cout << "\t-nowarnings = TRUE" << endl << "  Note that order of parameters is not important." << endl << endl;
+		printColoredText("\t; ATester Configuration\n\t-p = task.exe\n\t-i = task.in\n\t-o = task.out\n\t-tl = 2000\n\t-nowarnings = TRUE", CC_LIGHTGREEN);
+		cout << endl << "  Note that order of parameters is not important." << endl << endl;
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-helpconfig\" caused ignoring other flags");
-		terminate(false);
+		terminate(false, true);
 	}
 	if (params->getHelpDefault()) {
+		cout << endl << "  Help :: Default parameters" << endl << "  ========================================================" << endl << endl;
 		Parameters * cur = new Parameters();
-		cout << "  ATester uses some default parameters, so you can run ATester using command \"atester\" and testing will be run, but values of parameters will be following:" << endl;
-		cout << "\t-c           = " << cur->getCheckerFileName() << " (more info about the checkers you can get by running with the flag \"-helpcheckers\")" << endl;
-		cout << "\t-cfgfile     = " << cur->getCFGFileName() << " (more info about the configuration file you can get by running with the flag \"-helpconfig\")" << endl;
-		cout << "\t-i           = " << cur->getInputFileName() << endl;
-		cout << "\t-ml          = " << cur->getMemoryLimit() << endl;
-		cout << "\t-nowarnings  = FALSE (warnings are shown by default)" << endl;
-		cout << "\t-o           = " << cur->getOutputFileName() << endl;
-		cout << "\t-p           = " << cur->getProgramFileName() << endl;
-		cout << "\t-tc          = 0 (ATester automatically detects number of tests)" << endl;
-		cout << "\t-tim         = " << cur->getInputFileMask()->getFileMask() << " (more info about the test data file masks you can get by running with the flag \"-helpmasks\")" << endl;
-		cout << "\t-tl          = " << cur->getTimeLimit() << endl;
-		cout << "\t-tom         = " << cur->getOutputFileMask()->getFileMask() << " (more info about the test data file masks you can get by running with the flag \"-helpmasks\")" << endl << endl;
+		cout << "  ATester uses some default parameters, so you can run ATester using command \"atester\" and testing will be run, but values of parameters will be following:" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-c", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(cur->getCheckerFileName(), CC_LIGHTCYAN);
+		cout << " (more info about the checkers you can get by running with the flag ";
+		printColoredText("-helpcheckers", CC_BROWN);
+		cout << ")" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-cfgfile", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(cur->getCFGFileName(), CC_LIGHTCYAN);
+		cout << " (more info about the configuration file you can get by running with the flag ";
+		printColoredText("-helpconfig", CC_BROWN);
+		cout << ")" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-checkertl", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(toa(cur->getCheckerTimeLimit()), CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("-i", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(cur->getInputFileName(), CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("-ml", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(toa(cur->getMemoryLimit()), CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("-nowarnings", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText("FALSE", CC_LIGHTCYAN);
+		cout << " (warnings are shown by default)" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-o", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(cur->getOutputFileName(), CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("-p", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(cur->getProgramFileName(), CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("-tc", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText("0", CC_LIGHTCYAN);
+		cout << " (ATester automatically detects number of tests)" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-tim", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(cur->getInputFileMask()->getFileMask(), CC_LIGHTCYAN);
+		cout << " (more info about the test data file masks you can get by running with the flag ";
+		printColoredText("-helpmasks", CC_BROWN);
+		cout << ")" << endl << endl;
+
+		cout << "\t";
+		printColoredText("-tl", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(toa(cur->getTimeLimit()), CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("-tom", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText(cur->getOutputFileMask()->getFileMask(), CC_LIGHTCYAN);
+		cout << " (more info about the test data file masks you can get by running with the flag ";
+		printColoredText("-helpmasks", CC_BROWN);
+		cout << ")" << endl << endl;
+
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-helpdefault\" caused ignoring other flags");
 		delete cur;
-		terminate(false);
+		terminate(false, true);
 	}
 	if (params->getHelpMasks()) {
+		cout << endl << "  Help :: File masks" << endl << "  ========================================================" << endl << endl;
 		cout << "  File masks are used to unify format of filenames of test data files." << endl;
 		cout << "  Usually test data files have common way of constructing filename - they contain some similar parts and a number of test to differentiate them." << endl << endl;
-		cout << "  To specify mask you should put \"?\" symbols instead of number of test in the mask. Note that sometimes test data files are named like \"01.in\" and the number have leading zeros, so the number has at least 2 decimal places, so you should put 2 \"?\" symbols and the mask will be following: \"??.in\"." << endl;
+		cout << "  To specify mask you should put \"?\" symbols instead of number of test in the mask. Note that sometimes test data files are named like ";
+		printColoredText("01.in", CC_LIGHTGREEN);
+		cout << " and the number have leading zeros, so the number has at least 2 decimal places, so you should put 2 \"?\" symbols and the mask will be following: ";
+		printColoredText("??.in", CC_LIGHTMAGENTA);
+		cout << "." << endl << endl;
 		cout << "  If there are 2 decimal places in the mask and number of tests is more than 99, ATester will run testing on all tests, but last tests will have 3 or more decimal places for number." << endl << endl;
-		cout << "  Examples of correct masks:" << endl;
-		cout << "\tC:\\work\\??.in       = \"C:\\work\\01.in\", \"C:\\work\\12.in\", \"C:\\work\\117.in\"" << endl;
-		cout << "\tinput?.txt          = \"input1.txt\", \"input12.txt\", \"input117.txt\"" << endl;
-		cout << "\ttask05_output?.dat  = \"task05_output1.dat\", \"task05_output12.dat\", \"task05_output117.dat\"" << endl;
-		cout << "\t??                  = \"01\", \"12\", \"117\"" << endl << endl;
-		cout << "  Note that ATester support test data files with only one block of numbers, so the mask \"??test??\" is incorrect." << endl << endl;
+		cout << "  Examples of correct masks:" << endl << endl;
+
+		cout << "\t";
+		printColoredText("C:\\work\\??.in", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText("C:\\work\\01.in", CC_LIGHTCYAN);
+		cout << ", ";
+		printColoredText("C:\\work\\12.in", CC_LIGHTCYAN);
+		cout << ", ";
+		printColoredText("C:\\work\\117.in", CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("input?.txt", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText("input1.txt", CC_LIGHTCYAN);
+		cout << ", ";
+		printColoredText("input12.txt", CC_LIGHTCYAN);
+		cout << ", ";
+		printColoredText("input117.txt", CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("task05_output?.dat", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText("task05_output1.dat", CC_LIGHTCYAN);
+		cout << ", ";
+		printColoredText("task05_output12.dat", CC_LIGHTCYAN);
+		cout << ", ";
+		printColoredText("task05_output117.dat", CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "\t";
+		printColoredText("??", CC_LIGHTMAGENTA);
+		cout << " = ";
+		printColoredText("01", CC_LIGHTCYAN);
+		cout << ", ";
+		printColoredText("12", CC_LIGHTCYAN);
+		cout << ", ";
+		printColoredText("117", CC_LIGHTCYAN);
+		cout << endl << endl;
+
+		cout << "  Note that ATester support test data files with only one block of numbers, so the mask ";
+		printColoredText("??test??", CC_LIGHTGREEN);
+		cout << " is incorrect." << endl << endl;
+
 		if (cmdParams.size() > 1) generateWarning("running with the flag \"-helpmasks\" caused ignoring other flags");
-		terminate(false);
+		terminate(false, true);
 	}
 }

@@ -2,14 +2,16 @@
 
 #include <fstream>
 #include <Windows.h>
+#include <iostream>
+#include <string>
 
 using namespace std;
 
 const HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-enum ConsoleTextColor {
+enum COLOR {
 	CC_BLACK,
-	CC_BLUE,
+	CC_NAVY,
 	CC_GREEN,
 	CC_CYAN,
 	CC_RED,
@@ -17,7 +19,7 @@ enum ConsoleTextColor {
 	CC_BROWN,
 	CC_LIGHTGRAY,
 	CC_DARKGRAY,
-	CC_LIGHTBLUE,
+	CC_BLUE,
 	CC_LIGHTGREEN,
 	CC_LIGHTCYAN,
 	CC_LIGHTRED,
@@ -26,8 +28,11 @@ enum ConsoleTextColor {
 	CC_WHITE
 };
 
+const COLOR DEFAULT_COLOR = CC_LIGHTGRAY;
+
 bool fileExists(string filename);
-void setConsoleTextColor(ConsoleTextColor color);
+void setConsoleTextColor(COLOR color);
+void printColoredText(string text, COLOR color);
 bool createDirectory(string directoryName);
 bool copyFile(string oldName, string newName);
 bool deleteDirectory(string directoryName, bool noRecycleBin);

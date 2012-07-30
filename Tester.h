@@ -6,8 +6,14 @@
 
 class Tester {
 private:
+	Parameters * params;
+	Information * info;
+
+	bool executeProgram(string fileName, HANDLE & hProcess, DWORD & dwProcessId);
+	bool killProgram(DWORD dwProcessId);
+	void loadCommentFromLogFile();
 public:
-	Tester();
+	Tester(Parameters * params, Information * info);
 	~Tester();
-	ERROR_CODE runTest(int number, Parameters * params, Information * info);
+	ERROR_CODE runTest(int number, bool autoDetectTestsNumber);
 };

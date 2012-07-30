@@ -9,7 +9,7 @@ string getNum(int n, int mask) {
 }
 
 void showStartUpInfo() {
-	cout << "\t ATester v" << _ATESTER_CURRENT_VERSION_ << "   copyright(c) Alexander Agulenko 2012";
+	cout << endl << "\t ATester v" << _ATESTER_CURRENT_VERSION_ << "   copyright(c) Alexander Agulenko 2012";
 	time_t t = time(0); 
 	int year = localtime(&t)->tm_year + 1900;
 	if (year > 2012) cout << "-" << year;

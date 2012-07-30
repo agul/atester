@@ -15,6 +15,7 @@
 #include <fstream>
 #include <ctime>
 #include <Windows.h>
+#include <Psapi.h>
 #include "AguL_STD.h"
 #include "AguL_WinAPI.h"
 
@@ -22,9 +23,9 @@
 
 using namespace std;
 
-#define _ATESTER_CURRENT_VERSION_ "4.0beta"
+#define _ATESTER_CURRENT_VERSION_ "4.0alpha"
 
-const int OUTCOME_COUNT = 7;
+const int OUTCOME_COUNT = 8;
 
 enum OUTCOME_TYPE {
 	OT_UD,
@@ -33,44 +34,76 @@ enum OUTCOME_TYPE {
 	OT_TL,
 	OT_ML,
 	OT_RE,
+	OT_FL,
 	OT_IE
 };
 
 const string OUTCOME_NAME[OUTCOME_COUNT] = {
-	"Checking...",
+	"Undefined Outcome",
 	"Accepted!",
 	"Wrong Answer",
 	"Time Limit Exceeded",
 	"Memory Limit Exceeded",
 	"Runtime Error",
+	"FAIL!",
 	"Internal Error"
 };
 
-const ConsoleTextColor OUTCOME_COLOR[OUTCOME_COUNT] = {
-	CC_DARKGRAY,
+const COLOR OUTCOME_COLOR[OUTCOME_COUNT] = {
+	CC_GREEN,
 	CC_GREEN,
 	CC_LIGHTRED,
 	CC_LIGHTRED,
 	CC_LIGHTRED,
 	CC_LIGHTRED,
-	CC_YELLOW
+	CC_YELLOW,
+	CC_LIGHTMAGENTA
 };
 
-const int ERROR_COUNT = 4;
+const string SHORT_OUTCOME_NAME[OUTCOME_COUNT] = {
+	"OK",
+	"OK",
+	"WA",
+	"TL",
+	"ML",
+	"RE",
+	"FL",
+	"IE"
+};
+
+const int ERROR_COUNT = 12;
 
 enum ERROR_CODE {
 	EC_OK,
-	EC_TEST_DATA_FILE_NOT_FOUND,
+	EC_INPUT_DATA_FILE_NOT_FOUND,
+	EC_CANNOT_COPY_INPUT_DATA_FILE,
+	EC_ANSWER_DATA_FILE_NOT_FOUND,
+	EC_CANNOT_COPY_ANSWER_DATA_FILE,
 	EC_TESTING_PROGRAM_FILE_CORRUPTED,
-	EC_CHECKER_FILE_CORRUPTED
+	EC_CANNOT_EXECUTE_TESTING_PROGRAM,
+	EC_CANNOT_TERMINATE_TESTING_PROGRAM,
+	EC_CHECKER_FILE_CORRUPTED,
+	EC_CANNOT_EXECUTE_CHECKER,
+	EC_CANNOT_TERMINATE_CHECKER,
+	EC_CHECKER_TIMELIMIT
 };
 
 const string ERROR_MESSAGES[ERROR_COUNT] = {
-	"Success.",
-	"Test data file had not been found.",
-	"Testing program file had been corrupted.",
-	"Checker program file had been corrupted."
+	"Success",
+	"Input data file had not been found",
+	"Cannot copy input data file to working directory",
+	"Answer data file had not been found",
+	"Cannot copy answer data file to working directory",
+	"Testing program file had been corrupted",
+	"Cannot execute testing program",
+	"Cannot terminate testing program",
+	"Checker program file had been corrupted"
+	"Cannot execute checker",
+	"Cannot terminate checker (checker exceeded time limit)",
+	"Checker exceeded time limit"
 };
+
+const int TIMELIMIT_FIX = 15;
 
 string getNum(int n, int mask);
 LPCWSTR makeLPCWSTR(const char * s);
