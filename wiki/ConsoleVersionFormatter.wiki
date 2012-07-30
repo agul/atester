@@ -1,1 +1,0 @@
-*formatter.dpr* - main project. It includes same functions as *unit4* in GUI Version. Formatter helps you lead tests to ATester working format.
