@@ -1,11 +1,11 @@
 #include "AguL_WinAPI.h"
 
-bool fileExists(string filename) {
-	ifstream * in = new ifstream(filename);
-	in->close();
-	bool result = !in->fail();
-	delete in;
-	return result;
+ifstream * fileLoader = new ifstream();
+
+bool fileExists(string fileName) {
+	fileLoader->open(fileName);
+	fileLoader->close();
+	return !fileLoader->fail();
 }
 
 void setConsoleTextColor(COLOR color) {

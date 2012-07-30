@@ -3,12 +3,7 @@
 #include "Common.h"
 
 class Information {
-private:
-	int timePeak, memoryPeak, lastTestTime, lastTestMemory;
-	OUTCOME_TYPE outcome;
-	string comment;
 public:
-
 	Information() {
 		memoryPeak = timePeak = lastTestTime = lastTestMemory = 0;
 		outcome = OT_UD;
@@ -42,6 +37,7 @@ public:
 	}
 
 	void setLastTestTime(int lastTestTime) {
+		lastTestTime = max(lastTestTime, 15);
 		timePeak = max(timePeak, lastTestTime);
 		this->lastTestTime = lastTestTime;
 	}
@@ -59,4 +55,8 @@ public:
 		this->lastTestMemory = lastTestMemory;
 	}
 
+private:
+	int timePeak, memoryPeak, lastTestTime, lastTestMemory;
+	OUTCOME_TYPE outcome;
+	string comment;
 };

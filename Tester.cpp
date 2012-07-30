@@ -4,23 +4,37 @@
 Tester::Tester(Parameters * params, Information * info) {
 	this->params = params;
 	this->info = info;
+	startupInformation = (LPSTARTUPINFOA)malloc(sizeof(STARTUPINFO));
+	processInformation = (LPPROCESS_INFORMATION)malloc(sizeof(PROCESS_INFORMATION));
+	ftCreationTime = (LPFILETIME)malloc(sizeof(FILETIME));
+	ftExitTime = (LPFILETIME)malloc(sizeof(FILETIME));
+	ftKernelTime = (LPFILETIME)malloc(sizeof(FILETIME));
+	ftUserTime = (LPFILETIME)malloc(sizeof(FILETIME));
+	stKernelTime = (LPSYSTEMTIME)malloc(sizeof(SYSTEMTIME));
+	stUserTime = (LPSYSTEMTIME)malloc(sizeof(SYSTEMTIME));
+	ppmCounters = (PPROCESS_MEMORY_COUNTERS)malloc(sizeof(PROCESS_MEMORY_COUNTERS));
 }
 
 Tester::~Tester() {
+	delete startupInformation;
+	delete processInformation;
+	free(ftCreationTime);
+	free(ftExitTime);
+	free(ftKernelTime);
+	free(ftUserTime);
+	free(stKernelTime);
+	free(stUserTime);
+	free(ppmCounters);
 }
 
 bool Tester::executeProgram(string fileName, HANDLE & hProcess, DWORD & dwProcessId) {
-	LPSTARTUPINFOA startupInformation = (LPSTARTUPINFOA)malloc(sizeof(STARTUPINFO));
-	LPPROCESS_INFORMATION processInformation = (LPPROCESS_INFORMATION)malloc(sizeof(PROCESS_INFORMATION));
 	memset(startupInformation, 0, sizeof(STARTUPINFO));
 	memset(processInformation, 0, sizeof(PROCESS_INFORMATION));
-	startupInformation->cb = sizeof(startupInformation);
+	startupInformation->cb = sizeof(STARTUPINFO);
 	bool executionResult = CreateProcessA(NULL, (char *)(fileName.c_str()), NULL, NULL, true, CREATE_NO_WINDOW | REALTIME_PRIORITY_CLASS, NULL, (char *)(params->getInvocationDirectory().c_str()), startupInformation, processInformation) || 
 						   CreateProcessA(NULL, (char *)(fileName.c_str()), NULL, NULL, true, CREATE_NO_WINDOW | REALTIME_PRIORITY_CLASS, NULL, (char *)(params->getInvocationDirectory().c_str()), startupInformation, processInformation);
 	hProcess = processInformation->hProcess;
 	dwProcessId = processInformation->dwProcessId;
-	delete startupInformation;
-	delete processInformation;
 	return executionResult;
 }
 
@@ -40,15 +54,31 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	if (!fileExists(params->getProgramPath())) return EC_TESTING_PROGRAM_FILE_CORRUPTED;
 	HANDLE hProcess = (HANDLE)0;
 	DWORD dwProcessId = (DWORD)0;
-	double startTime = clock();
 	if (!executeProgram("\"" + params->getProgramPath() + "\"", hProcess, dwProcessId)) return EC_CANNOT_EXECUTE_TESTING_PROGRAM;
-	int waitingResult = WaitForSingleObject(hProcess, params->getTimeLimit() + TIMELIMIT_FIX);
-	info->setLastTestTime((int)((clock() - startTime) / CLOCKS_PER_SEC * 1000));
-	if (waitingResult == WAIT_TIMEOUT) {
-		info->setOutcome(OT_TL);
+
+	// accurately calculate used time
+
+	int waitingResult = WaitForSingleObject(hProcess, params->getTimeLimit() << 2);
+	if (waitingResult == WAIT_TIMEOUT) 
 		if (!killProgram(dwProcessId)) return EC_CANNOT_TERMINATE_TESTING_PROGRAM;
-		return EC_OK;
+	memset(ftCreationTime, 0, sizeof(FILETIME));
+	memset(ftExitTime, 0, sizeof(FILETIME));
+	memset(ftKernelTime, 0, sizeof(FILETIME));
+	memset(ftUserTime, 0, sizeof(FILETIME));
+	GetProcessTimes(hProcess, ftCreationTime, ftExitTime, ftKernelTime, ftUserTime);
+	memset(stKernelTime, 0, sizeof(SYSTEMTIME));
+	memset(stUserTime, 0, sizeof(SYSTEMTIME));
+	FileTimeToSystemTime(ftKernelTime, stKernelTime);
+	FileTimeToSystemTime(ftUserTime, stUserTime);
+	int usedTime = calculateTime(stKernelTime) + calculateTime(stUserTime);
+	info->setLastTestTime(usedTime);
+	if (usedTime > params->getTimeLimit() + TIMELIMIT_FIX) {
+		info->setOutcome(OT_TL);
+        return EC_OK;
 	}
+
+
+
 	int exitCode = 0;
 	GetExitCodeProcess(hProcess, (LPDWORD)(&exitCode));
 	if (exitCode) {
@@ -56,12 +86,9 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 		info->setComment("Testing program terminated with error code " + toa(exitCode));
 		return EC_OK;
 	}
-	int tmpSize = sizeof(PROCESS_MEMORY_COUNTERS);
-	PPROCESS_MEMORY_COUNTERS ppmCounters = (PPROCESS_MEMORY_COUNTERS)malloc(tmpSize);
 	memset(ppmCounters, 0, sizeof(PROCESS_MEMORY_COUNTERS));
 	GetProcessMemoryInfo(hProcess, ppmCounters, sizeof(PROCESS_MEMORY_COUNTERS));
 	int usedMemory = ppmCounters->PeakPagefileUsage;
-	free(ppmCounters);
 	info->setLastTestMemory(usedMemory);
 	if (usedMemory > params->getMemoryLimit()) {
 		info->setOutcome(OT_ML);
@@ -96,6 +123,10 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 		return EC_OK;
 	}
 	return EC_OK;
+}
+
+int Tester::calculateTime(LPSYSTEMTIME lpSystemTime) {
+	return lpSystemTime->wHour * 3600000 + lpSystemTime->wMinute * 60000 + lpSystemTime->wSecond * 1000 + lpSystemTime->wMilliseconds;
 }
 
 void Tester::loadCommentFromLogFile() {

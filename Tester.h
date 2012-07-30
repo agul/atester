@@ -5,15 +5,23 @@
 #include "Information.h"
 
 class Tester {
-private:
-	Parameters * params;
-	Information * info;
-
-	bool executeProgram(string fileName, HANDLE & hProcess, DWORD & dwProcessId);
-	bool killProgram(DWORD dwProcessId);
-	void loadCommentFromLogFile();
 public:
 	Tester(Parameters * params, Information * info);
 	~Tester();
 	ERROR_CODE runTest(int number, bool autoDetectTestsNumber);
+
+private:
+	Parameters * params;
+	Information * info;
+
+	LPSTARTUPINFOA startupInformation;
+	LPPROCESS_INFORMATION processInformation;
+	LPFILETIME ftCreationTime, ftExitTime, ftKernelTime, ftUserTime;
+	LPSYSTEMTIME stKernelTime, stUserTime;
+	PPROCESS_MEMORY_COUNTERS ppmCounters;
+
+	bool executeProgram(string fileName, HANDLE & hProcess, DWORD & dwProcessId);
+	bool killProgram(DWORD dwProcessId);
+	int calculateTime(LPSYSTEMTIME lpSystemTime);
+	void loadCommentFromLogFile();
 };
