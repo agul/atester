@@ -1,3 +1,4 @@
 createEnvironment() 			= support std::%CHECKER_NAME%
 
 runTesting()					= correctly calculate only CPU time
+								= idleness limit exceeded?
