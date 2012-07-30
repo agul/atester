@@ -1,7 +1,0 @@
-Main project file is *project1.dpr*.
-
-  * *Unit1* - main user window. It includes most of functions, because I did not put them in separate module.
-  * *Unit2*,*Unit3*,*Unit5* - help modules.
-  * *Unit4* - formatting module.
-  * *Unit6* - updation module.
-  * *Unit7* - splash screen module.
