@@ -39,7 +39,8 @@ bool Tester::executeProgram(string fileName, HANDLE & hProcess, DWORD & dwProces
 }
 
 bool Tester::killProgram(DWORD dwProcessId) {
-	return TerminateProcess(OpenProcess(PROCESS_TERMINATE, false, dwProcessId), 0) || TerminateProcess(OpenProcess(PROCESS_TERMINATE, false, dwProcessId), 0);
+	return TerminateProcess(OpenProcess(PROCESS_TERMINATE, false, dwProcessId), 0) || 
+		   TerminateProcess(OpenProcess(PROCESS_TERMINATE, false, dwProcessId), 0);
 }
 
 ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
