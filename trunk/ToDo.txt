@@ -1,9 +1,3 @@
-												=== Structure prototype ===
-
 createEnvironment() 			= support std::%CHECKER_NAME%
 
-runTesting()					= obvious :) A lot to do
-
-clearEnvironment()				= kill checker and program
-
-outputInfo()					= output all invocation info: timePeak, memoryPeak, verdict (comment if exists)
+runTesting()					= try calculate time in another way (GetProcessTimes)

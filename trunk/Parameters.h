@@ -23,7 +23,11 @@ private:
 		digitsCount = x - y;
 		endPart = full.substr(x);
 		size_t includesNum = endPart.find("?");
-		if (includesNum >= 0 && includesNum < endPart.length()) generateError("test file mask can include only one block differentiating test number");
+		if (includesNum >= 0 && includesNum < endPart.length()) {
+			generateError("test file mask can include only one block differentiating test number");
+			cout << endl;
+			exit(0);
+		}
 	}
 
 public:
@@ -34,6 +38,10 @@ public:
 	}
 
 	~TestFileMask() {}
+
+	string getFileNameByTestNumber(int number) {
+		if (digitsCount) return beginPart + getNum(number, digitsCount) + endPart; else return beginPart;
+	}
 
 	int getDigitsCount() {
 		return digitsCount;
@@ -53,36 +61,67 @@ public:
 class Parameters {
 private:
 	bool help, helpCheckers, helpConfig, helpDefault, helpMasks, isCFGFileSet;
-	int timeLimit, testsCount, memoryLimit;
-	string checkerFileName, CFGFileName, inputFileName, outputFileName, programFileName, invocationID, invocationCode, invocationDirectory, checkerPath, programPath;
+	int timeLimit, testsCount, memoryLimit, checkerTimeLimit;
+	string checkerFileName, CFGFileName, inputFileName, outputFileName, programFileName, invocationID, invocationCode,
+		   invocationDirectory, checkerPath, programPath, inputFilePath, outputFilePath, answerFilePath, checkerLogFilePath;
 	TestFileMask * inputFileMask, * outputFileMask;
 public:
 
 	Parameters() {
 		checkerFileName = "std::fcmp";
+		checkerTimeLimit = 10000;
 		help = helpCheckers = helpMasks = helpDefault = helpConfig = isCFGFileSet = false;
-		inputFileMask = new TestFileMask("??");
+		inputFileMask = new TestFileMask("tests\\??");
 		inputFileName = "input.txt";
 		CFGFileName = "atester.cfg";
 		memoryLimit = 256000000;
-		outputFileMask = new TestFileMask("??.a");
+		outputFileMask = new TestFileMask("tests\\??.a");
 		outputFileName = "output.txt";
 		programFileName = "task.exe";
 		testsCount = 0;
 		timeLimit = 2000;
 		invocationID = toa((int)GetCurrentProcessId());
 		invocationCode = "ATester Invocation " + invocationID;
-		char tmp[1024];
+		char * tmp = (char *)malloc(sizeof(char) * 1024);
 		GetCurrentDirectoryA(1024, tmp);
 		string workingDirectory = tmp;
+		free(tmp);
 		invocationDirectory = workingDirectory + "\\" + invocationCode + "\\";
 		checkerPath = invocationDirectory + "check.exe";
 		programPath = invocationDirectory + "task.exe";
+		inputFilePath = invocationDirectory + "input.txt";
+		outputFilePath = invocationDirectory + "output.txt";
+		answerFilePath = invocationDirectory + "atester_invocation" + invocationID + "_answerFile.txt";
+		checkerLogFilePath = invocationDirectory + "atester_invocation" + invocationID + "_logFile.txt";
 	}
 
 	~Parameters() {
 		delete inputFileMask;
 		delete outputFileMask;
+	}
+
+	int getCheckerTimeLimit() {
+		return checkerTimeLimit;
+	}
+
+	void setCheckerTimeLimit(int checkerTimeLimit) {
+		this->checkerTimeLimit = checkerTimeLimit;
+	}
+
+	string getCheckerLogFilePath() {
+		return checkerLogFilePath;
+	}
+
+	string getAnswerFilePath() {
+		return answerFilePath;
+	}
+
+	string getInputFilePath() {
+		return inputFilePath;
+	}
+
+	string getOutputFilePath() {
+		return outputFilePath;
 	}
 	
 	string getInvocationDirectory() {
@@ -135,6 +174,7 @@ public:
 
 	void setOutputFileName(string outputFileName) {
 		this->outputFileName = outputFileName;
+		outputFilePath = invocationDirectory + outputFileName;
 	}
 
 	string getInputFileName() {
@@ -143,6 +183,7 @@ public:
 
 	void setInputFileName(string inputFileName) {
 		this->inputFileName = inputFileName;
+		inputFilePath = invocationDirectory + inputFileName;
 	}
 
 	string getCFGFileName() {

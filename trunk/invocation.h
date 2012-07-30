@@ -16,7 +16,8 @@ public:
 	void createEnvironment();
 	void runTesting();
 	void clearEnvironment();
-	void terminate(bool needWarnings);
+	void outputInfo();
+	void terminate(bool needWarnings, bool needDeletingEnvironment);
 	
 	void error(string msg);
 	void showHelp();
