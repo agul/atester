@@ -3,33 +3,6 @@
 #include "Common.h"
 
 class TestFileMask {
-private:
-	string beginPart, endPart, full;
-	int digitsCount;
-
-	void parse() {
-		beginPart = "";
-		endPart = "";
-		digitsCount = 0;
-		int ls = full.length(), x = 0, y;
-		while (x < ls && full[x] != '?') ++x;
-		if (x == ls) {
-			beginPart = full;
-			return;
-		}
-		beginPart = full.substr(0, x);
-		y = x;
-		while (x < ls && full[x] == '?') ++x;
-		digitsCount = x - y;
-		endPart = full.substr(x);
-		size_t includesNum = endPart.find("?");
-		if (includesNum >= 0 && includesNum < endPart.length()) {
-			generateError("test file mask can include only one block differentiating test number");
-			cout << endl;
-			exit(0);
-		}
-	}
-
 public:
 
 	TestFileMask(string fileMask) {
@@ -56,17 +29,36 @@ public:
 		parse();
 	}
 
+private:
+	string beginPart, endPart, full;
+	int digitsCount;
+
+	void parse() {
+		beginPart = "";
+		endPart = "";
+		digitsCount = 0;
+		int ls = full.length(), x = 0, y;
+		while (x < ls && full[x] != '?') ++x;
+		if (x == ls) {
+			beginPart = full;
+			return;
+		}
+		beginPart = full.substr(0, x);
+		y = x;
+		while (x < ls && full[x] == '?') ++x;
+		digitsCount = x - y;
+		endPart = full.substr(x);
+		size_t includesNum = endPart.find("?");
+		if (includesNum >= 0 && includesNum < endPart.length()) {
+			generateError("test file mask can include only one block differentiating test number");
+			cout << endl;
+			exit(0);
+		}
+	}
 };
 
 class Parameters {
-private:
-	bool help, helpCheckers, helpConfig, helpDefault, helpMasks, isCFGFileSet;
-	int timeLimit, testsCount, memoryLimit, checkerTimeLimit;
-	string checkerFileName, CFGFileName, inputFileName, outputFileName, programFileName, invocationID, invocationCode,
-		   invocationDirectory, checkerPath, programPath, inputFilePath, outputFilePath, answerFilePath, checkerLogFilePath;
-	TestFileMask * inputFileMask, * outputFileMask;
 public:
-
 	Parameters() {
 		checkerFileName = "std::fcmp";
 		checkerTimeLimit = 10000;
@@ -265,5 +257,12 @@ public:
 	void setHelpMasks(bool helpMasks) {
 		this->helpMasks = helpMasks;
 	}
+
+private:
+	bool help, helpCheckers, helpConfig, helpDefault, helpMasks, isCFGFileSet;
+	int timeLimit, testsCount, memoryLimit, checkerTimeLimit;
+	string checkerFileName, CFGFileName, inputFileName, outputFileName, programFileName, invocationID, invocationCode,
+		   invocationDirectory, checkerPath, programPath, inputFilePath, outputFilePath, answerFilePath, checkerLogFilePath;
+	TestFileMask * inputFileMask, * outputFileMask;
 
 };
