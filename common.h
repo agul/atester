@@ -25,7 +25,7 @@ using namespace std;
 
 #define _ATESTER_CURRENT_VERSION_ "4.0alpha"
 
-const int OUTCOME_COUNT = 8;
+const int OUTCOME_COUNT = 9;
 
 enum OUTCOME_TYPE {
 	OT_UD,
@@ -34,6 +34,7 @@ enum OUTCOME_TYPE {
 	OT_TL,
 	OT_ML,
 	OT_RE,
+	OT_IL,
 	OT_FL,
 	OT_IE
 };
@@ -45,6 +46,7 @@ const string OUTCOME_NAME[OUTCOME_COUNT] = {
 	"Time Limit Exceeded",
 	"Memory Limit Exceeded",
 	"Runtime Error",
+	"Idleness Limit Exceeded",
 	"FAIL!",
 	"Internal Error"
 };
@@ -52,6 +54,7 @@ const string OUTCOME_NAME[OUTCOME_COUNT] = {
 const COLOR OUTCOME_COLOR[OUTCOME_COUNT] = {
 	CC_GREEN,
 	CC_GREEN,
+	CC_LIGHTRED,
 	CC_LIGHTRED,
 	CC_LIGHTRED,
 	CC_LIGHTRED,
@@ -67,6 +70,7 @@ const string SHORT_OUTCOME_NAME[OUTCOME_COUNT] = {
 	"TL",
 	"ML",
 	"RE",
+	"IL",
 	"FL",
 	"IE"
 };
