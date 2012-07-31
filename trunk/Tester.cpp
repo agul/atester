@@ -60,7 +60,7 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	// accurately calculate used time
 
 	int waitingResult = WaitForSingleObject(hProcess, params->getTimeLimit() << 2);
-	if (waitingResult == WAIT_TIMEOUT) 
+	if (waitingResult == WAIT_TIMEOUT)
 		if (!killProgram(dwProcessId)) return EC_CANNOT_TERMINATE_TESTING_PROGRAM;
 	memset(ftCreationTime, 0, sizeof(FILETIME));
 	memset(ftExitTime, 0, sizeof(FILETIME));
@@ -73,26 +73,28 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	FileTimeToSystemTime(ftUserTime, stUserTime);
 	int usedTime = calculateTime(stKernelTime) + calculateTime(stUserTime);
 	info->setLastTestTime(usedTime);
+	memset(ppmCounters, 0, sizeof(PROCESS_MEMORY_COUNTERS));
+	GetProcessMemoryInfo(hProcess, ppmCounters, sizeof(PROCESS_MEMORY_COUNTERS));
+	int usedMemory = ppmCounters->PeakPagefileUsage;
+	info->setLastTestMemory(usedMemory);
 	if (usedTime > params->getTimeLimit() + TIMELIMIT_FIX) {
 		info->setOutcome(OT_TL);
         return EC_OK;
+	} else
+	if (waitingResult == WAIT_TIMEOUT) {
+		info->setOutcome(OT_IL);
+		info->setComment("Program terminated after " + toa(params->getTimeLimit() << 2) + " ms");
+		return EC_OK;
 	}
-
-
-
+	if (usedMemory > params->getMemoryLimit()) {
+		info->setOutcome(OT_ML);
+		return EC_OK;
+	}
 	int exitCode = 0;
 	GetExitCodeProcess(hProcess, (LPDWORD)(&exitCode));
 	if (exitCode) {
 		info->setOutcome(OT_RE);
 		info->setComment("Testing program terminated with error code " + toa(exitCode));
-		return EC_OK;
-	}
-	memset(ppmCounters, 0, sizeof(PROCESS_MEMORY_COUNTERS));
-	GetProcessMemoryInfo(hProcess, ppmCounters, sizeof(PROCESS_MEMORY_COUNTERS));
-	int usedMemory = ppmCounters->PeakPagefileUsage;
-	info->setLastTestMemory(usedMemory);
-	if (usedMemory > params->getMemoryLimit()) {
-		info->setOutcome(OT_ML);
 		return EC_OK;
 	}
 	if (!fileExists(params->getOutputFilePath())) {
