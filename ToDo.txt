@@ -1,1 +1,0 @@
-createEnvironment() 			= support std::%CHECKER_NAME%

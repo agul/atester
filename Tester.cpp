@@ -56,9 +56,6 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	HANDLE hProcess = (HANDLE)0;
 	DWORD dwProcessId = (DWORD)0;
 	if (!executeProgram("\"" + params->getProgramPath() + "\"", hProcess, dwProcessId)) return EC_CANNOT_EXECUTE_TESTING_PROGRAM;
-
-	// accurately calculate used time
-
 	int waitingResult = WaitForSingleObject(hProcess, params->getTimeLimit() << 2);
 	if (waitingResult == WAIT_TIMEOUT)
 		if (!killProgram(dwProcessId)) return EC_CANNOT_TERMINATE_TESTING_PROGRAM;

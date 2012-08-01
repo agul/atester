@@ -8,6 +8,14 @@ string toa(int x) {
 	return ret;
 }
 
+string toa(double x) {
+	stringstream ss;
+	ss << setprecision(3) << x;
+	string ret;
+	ss >> ret;
+	return ret;
+}
+
 int toi(string s) {
 	int result = 0, ls = s.length();
 	for (int i = 0; i < ls; ++i)

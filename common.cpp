@@ -15,11 +15,3 @@ void showStartUpInfo() {
 	if (year > 2012) cout << "-" << year;
 	cout << endl << "\t\t---------------------------------------" << endl << endl;
 }
-
-LPCWSTR makeLPCWSTR(const char * s) {
-	int ls = strlen(s);
-	WCHAR t[1024];
-	MultiByteToWideChar(0, 0, s, ls, t, 1024);
-	LPCWSTR result = t;
-	return result;
-}
