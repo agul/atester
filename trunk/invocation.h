@@ -25,4 +25,6 @@ private:
 	Parameters * params;
 	Information * info;
 	vector<string> cmdParams;
+
+	void getFileFromResource(int resourceCode, string fileName);
 };

@@ -60,7 +60,7 @@ private:
 class Parameters {
 public:
 	Parameters() {
-		checkerFileName = "std::fcmp";
+		checkerFileName = "std::lcmp";
 		checkerTimeLimit = 10000;
 		help = helpCheckers = helpMasks = helpDefault = helpConfig = isCFGFileSet = false;
 		inputFileMask = new TestFileMask("tests\\??");

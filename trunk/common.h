@@ -18,6 +18,7 @@
 #include <Psapi.h>
 #include "AguL_STD.h"
 #include "AguL_WinAPI.h"
+#include "Resource.h"
 
 #define pb push_back
 
@@ -105,6 +106,59 @@ const string ERROR_MESSAGES[ERROR_COUNT] = {
 	"Cannot execute checker",
 	"Cannot terminate checker (checker exceeded time limit)",
 	"Checker exceeded time limit"
+};
+
+const int STD_CHECKERS_COUNT = 14;
+
+const string STD_CHECKERS_NAME[STD_CHECKERS_COUNT] = {
+	"std::acmp",
+	"std::dcmp",
+	"std::fcmp",
+	"std::hcmp",
+	"std::icmp",
+	"std::lcmp",
+	"std::ncmp",
+	"std::rcmp",
+	"std::rcmp4",
+	"std::rcmp6",
+	"std::rcmp9",
+	"std::rncmp",
+	"std::wcmp",
+	"std::yesno"
+};
+
+const string STD_CHECKERS_COMMENT[STD_CHECKERS_COUNT] = {
+	"   = compares two doubles, maximal absolute error = 1e-6",
+	"   = compares two doubles, maximal absolute or relative error = 1e-6",
+	"   = compares files as sequence of lines",
+	"   = compares two signed huge integers",
+	"   = compares two signed int numbers",
+	"   = compares files as sequence of tokens in lines",
+	"   = compares ordered sequences of signed long long numbers",
+	"   = compares two doubles, maximal absolute error = 1.5 * 1e-5",
+	"  = compares two sequences of doubles, max absolute or relative error = 1e-4",
+	"  = compares two sequences of doubles, max absolute or relative error = 1e-6",
+	"  = compares two sequences of doubles, max absolute or relative error = 1e-9",
+	"  = compares two sequences of doubles, maximal absolute error = 1.5 * 1e-5",
+	"   = compares sequences of tokens",
+	"  = YES or NO (case insensetive)"
+};
+
+const int STD_CHECKERS_RESOURCE_CODE[STD_CHECKERS_COUNT] = {
+	IDR_RCDATA1,
+	IDR_RCDATA2,
+	IDR_RCDATA3,
+	IDR_RCDATA4,
+	IDR_RCDATA5,
+	IDR_RCDATA6,
+	IDR_RCDATA7,
+	IDR_RCDATA8,
+	IDR_RCDATA9,
+	IDR_RCDATA10,
+	IDR_RCDATA11,
+	IDR_RCDATA12,
+	IDR_RCDATA13,
+	IDR_RCDATA14
 };
 
 const int TIMELIMIT_FIX = 15;
