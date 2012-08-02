@@ -13,6 +13,7 @@ Tester::Tester(Parameters * params, Information * info) {
 	stKernelTime = (LPSYSTEMTIME)malloc(sizeof(SYSTEMTIME));
 	stUserTime = (LPSYSTEMTIME)malloc(sizeof(SYSTEMTIME));
 	ppmCounters = (PPROCESS_MEMORY_COUNTERS)malloc(sizeof(PROCESS_MEMORY_COUNTERS));
+	lpConsoleScreenBufferInfo = (PCONSOLE_SCREEN_BUFFER_INFO)malloc(sizeof(CONSOLE_SCREEN_BUFFER_INFO));
 }
 
 Tester::~Tester() {
@@ -25,6 +26,7 @@ Tester::~Tester() {
 	free(stKernelTime);
 	free(stUserTime);
 	free(ppmCounters);
+	free(lpConsoleScreenBufferInfo);
 }
 
 bool Tester::executeProgram(string fileName, HANDLE & hProcess, DWORD & dwProcessId) {
@@ -52,11 +54,17 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	if (!fileExists(fileName)) return EC_ANSWER_DATA_FILE_NOT_FOUND;
 	if (!copyFile(fileName, params->getAnswerFilePath())) return EC_CANNOT_COPY_ANSWER_DATA_FILE;
 	if (autoDetectTestsNumber) cout << " Test #" << number << " ==  ";
+	GetConsoleScreenBufferInfo(hStdOut, lpConsoleScreenBufferInfo);
+	COORD startCursorPos = lpConsoleScreenBufferInfo->dwCursorPosition;
+	printColoredText("Running...", CC_DARKGRAY);
+	SetConsoleCursorPosition(hStdOut, startCursorPos);
 	if (!fileExists(params->getProgramPath())) return EC_TESTING_PROGRAM_FILE_CORRUPTED;
 	HANDLE hProcess = (HANDLE)0;
 	DWORD dwProcessId = (DWORD)0;
 	if (!executeProgram("\"" + params->getProgramPath() + "\"", hProcess, dwProcessId)) return EC_CANNOT_EXECUTE_TESTING_PROGRAM;
 	int waitingResult = WaitForSingleObject(hProcess, params->getTimeLimit() << 2);
+	printColoredText("Checking...", CC_DARKGRAY);
+	SetConsoleCursorPosition(hStdOut, startCursorPos);
 	if (waitingResult == WAIT_TIMEOUT)
 		if (!killProgram(dwProcessId)) return EC_CANNOT_TERMINATE_TESTING_PROGRAM;
 	memset(ftCreationTime, 0, sizeof(FILETIME));

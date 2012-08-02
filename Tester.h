@@ -19,6 +19,7 @@ private:
 	LPFILETIME ftCreationTime, ftExitTime, ftKernelTime, ftUserTime;
 	LPSYSTEMTIME stKernelTime, stUserTime;
 	PPROCESS_MEMORY_COUNTERS ppmCounters;
+	PCONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo;
 
 	bool executeProgram(string fileName, HANDLE & hProcess, DWORD & dwProcessId);
 	bool killProgram(DWORD dwProcessId);

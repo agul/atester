@@ -54,6 +54,7 @@ Invocation::Invocation(int argc, char ** argv) {
 	printColoredText(getNum(curTime->tm_hour, 2) + ":" + getNum(curTime->tm_min, 2) + ":" + getNum(curTime->tm_sec, 2) + " " + getNum(curTime->tm_mday, 2) + "." + getNum(curTime->tm_mon, 2) + "." + toa((curTime->tm_year + 1900)) + "\n", CC_CYAN);
 	params = new Parameters();
 	info = new Information();
+	SetConsoleTitleA((char *)string("ATester (Invoker " + params->getInvocationID() + ")").c_str());
 	cout << " Invoker ID: ";
 	printColoredText(params->getInvocationID(), CC_CYAN);
 	cout << endl << endl;
