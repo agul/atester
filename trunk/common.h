@@ -24,7 +24,7 @@
 
 using namespace std;
 
-#define _ATESTER_CURRENT_VERSION_ "4.0alpha"
+#define _ATESTER_CURRENT_VERSION_ "4.0 (RC 1)"
 
 const int OUTCOME_COUNT = 9;
 
