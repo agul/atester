@@ -1,6 +1,11 @@
 #include "Tester.h"
 #pragma comment(lib, "psapi.lib")
 
+const string RUNNING_MESSAGE = "Running...";
+const string CHECKING_MESSAGE = "Checking...";
+const int RUNNING_MESSAGE_LENGTH = RUNNING_MESSAGE.length();
+const int CHECKING_MESSAGE_LENGTH = CHECKING_MESSAGE.length();
+
 Tester::Tester(Parameters * params, Information * info) {
 	this->params = params;
 	this->info = info;
@@ -56,17 +61,29 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	if (autoDetectTestsNumber) cout << " Test #" << number << " ==  ";
 	GetConsoleScreenBufferInfo(hStdOut, lpConsoleScreenBufferInfo);
 	COORD startCursorPos = lpConsoleScreenBufferInfo->dwCursorPosition;
-	printColoredText("Running...", CC_DARKGRAY);
-	SetConsoleCursorPosition(hStdOut, startCursorPos);
+	DWORD consoleNumberOfBytesWritten = 0;
 	if (!fileExists(params->getProgramPath())) return EC_TESTING_PROGRAM_FILE_CORRUPTED;
-	HANDLE hProcess = (HANDLE)0;
-	DWORD dwProcessId = (DWORD)0;
-	if (!executeProgram("\"" + params->getProgramPath() + "\"", hProcess, dwProcessId)) return EC_CANNOT_EXECUTE_TESTING_PROGRAM;
+	HANDLE hProcess = 0;
+	DWORD dwProcessId = 0;
+	printColoredText(RUNNING_MESSAGE, CC_DARKGRAY);
+	SetConsoleCursorPosition(hStdOut, startCursorPos);
+	if (!executeProgram("\"" + params->getProgramPath() + "\"", hProcess, dwProcessId)) {
+		FillConsoleOutputCharacterA(hStdOut, ' ', RUNNING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
+		return EC_CANNOT_EXECUTE_TESTING_PROGRAM;
+	}
 	int waitingResult = WaitForSingleObject(hProcess, params->getTimeLimit() << 2);
-	printColoredText("Checking...", CC_DARKGRAY);
+	
+	FillConsoleOutputCharacterA(hStdOut, ' ', RUNNING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+	SetConsoleCursorPosition(hStdOut, startCursorPos);
+	printColoredText(CHECKING_MESSAGE, CC_DARKGRAY);
 	SetConsoleCursorPosition(hStdOut, startCursorPos);
 	if (waitingResult == WAIT_TIMEOUT)
-		if (!killProgram(dwProcessId)) return EC_CANNOT_TERMINATE_TESTING_PROGRAM;
+		if (!killProgram(dwProcessId)) {
+			FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+			SetConsoleCursorPosition(hStdOut, startCursorPos);
+			return EC_CANNOT_TERMINATE_TESTING_PROGRAM;
+		}
 	memset(ftCreationTime, 0, sizeof(FILETIME));
 	memset(ftExitTime, 0, sizeof(FILETIME));
 	memset(ftKernelTime, 0, sizeof(FILETIME));
@@ -84,15 +101,21 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	info->setLastTestMemory(usedMemory);
 	if (usedTime > params->getTimeLimit() + TIMELIMIT_FIX) {
 		info->setOutcome(OT_TL);
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
         return EC_OK;
 	} else
 	if (waitingResult == WAIT_TIMEOUT) {
 		info->setOutcome(OT_IL);
 		info->setComment("Program terminated after " + toa(params->getTimeLimit() << 2) + " ms");
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
 		return EC_OK;
 	}
 	if (usedMemory > params->getMemoryLimit()) {
 		info->setOutcome(OT_ML);
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
 		return EC_OK;
 	}
 	int exitCode = 0;
@@ -100,17 +123,31 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	if (exitCode) {
 		info->setOutcome(OT_RE);
 		info->setComment("Testing program terminated with error code " + toa(exitCode));
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
 		return EC_OK;
 	}
 	if (!fileExists(params->getOutputFilePath())) {
 		info->setOutcome(OT_WA);
 		info->setComment("Output file had not been found.");
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
 		return EC_OK;
 	}
-	if (!fileExists(params->getCheckerPath())) return EC_CHECKER_FILE_CORRUPTED;
-	if (!executeProgram("\"" + params->getCheckerPath() + "\" \"" + params->getInputFilePath() + "\" \"" + params->getOutputFilePath() + "\" \"" + params->getAnswerFilePath() + "\" \"" + params->getCheckerLogFilePath() + "\"", hProcess, dwProcessId)) return EC_CANNOT_EXECUTE_CHECKER;
+	if (!fileExists(params->getCheckerPath())) {
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
+		return EC_CHECKER_FILE_CORRUPTED;
+	}
+	if (!executeProgram("\"" + params->getCheckerPath() + "\" \"" + params->getInputFilePath() + "\" \"" + params->getOutputFilePath() + "\" \"" + params->getAnswerFilePath() + "\" \"" + params->getCheckerLogFilePath() + "\"", hProcess, dwProcessId)) {
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
+		return EC_CANNOT_EXECUTE_CHECKER;
+	}
 	waitingResult = WaitForSingleObject(hProcess, params->getCheckerTimeLimit() + TIMELIMIT_FIX);
 	if (waitingResult == WAIT_TIMEOUT) {
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
 		if (!killProgram(dwProcessId)) return EC_CANNOT_TERMINATE_CHECKER;
 		return EC_CHECKER_TIMELIMIT;
 	}
@@ -118,18 +155,26 @@ ERROR_CODE Tester::runTest(int number, bool autoDetectTestsNumber) {
 	if (exitCode == 1 || exitCode == 2 || exitCode == 4) {
 		info->setOutcome(OT_WA);
 		loadCommentFromLogFile();
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
 		return EC_OK;
 	}
 	if (exitCode == 3) {
 		info->setOutcome(OT_FL);
 		loadCommentFromLogFile();
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
 		return EC_OK;
 	}
 	if (exitCode) {
 		info->setOutcome(OT_IE);
 		info->setComment("Checker terminated with unknown exit code " + toa(exitCode));
+		FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+		SetConsoleCursorPosition(hStdOut, startCursorPos);
 		return EC_OK;
 	}
+	FillConsoleOutputCharacterA(hStdOut, ' ', CHECKING_MESSAGE_LENGTH, startCursorPos, &consoleNumberOfBytesWritten);
+	SetConsoleCursorPosition(hStdOut, startCursorPos);
 	return EC_OK;
 }
 

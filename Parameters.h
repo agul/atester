@@ -7,7 +7,6 @@ public:
 
 	TestFileMask(string fileMask) {
 		full = fileMask;
-		parse();
 	}
 
 	~TestFileMask() {}
@@ -26,12 +25,7 @@ public:
 
 	void setFileMask(string fileMask) {
 		full = fileMask;
-		parse();
 	}
-
-private:
-	string beginPart, endPart, full;
-	int digitsCount;
 
 	void parse() {
 		beginPart = "";
@@ -55,12 +49,16 @@ private:
 			exit(0);
 		}
 	}
+
+private:
+	string beginPart, endPart, full;
+	int digitsCount;
 };
 
 class Parameters {
 public:
 	Parameters() {
-		checkerFileName = "std::lcmp";
+		checkerFileName = "std::fcmp";
 		checkerTimeLimit = 10000;
 		help = helpCheckers = helpMasks = helpDefault = helpConfig = isCFGFileSet = false;
 		inputFileMask = new TestFileMask("tests\\??");
