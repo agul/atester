@@ -3,7 +3,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <cstdio>
-#include <conio.h>
 #include <cstdlib>
 #include <iostream>
 #include <algorithm>
@@ -24,7 +23,7 @@
 
 using namespace std;
 
-#define _ATESTER_CURRENT_VERSION_ "4.0 (RC 1)"
+#define _ATESTER_CURRENT_VERSION_ "4.0 (RC 2)"
 
 const int OUTCOME_COUNT = 9;
 

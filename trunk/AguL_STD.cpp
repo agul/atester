@@ -26,7 +26,7 @@ int toi(string s) {
 string lowercase(string s) {
 	int ls = s.length();
 	for (int i = 0; i < ls; ++i)
-		s[i] |= 32;
+		if (s[i] >= 'A' && s[i] <= 'Z') s[i] |= 32;
 	return s;
 }
 

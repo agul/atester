@@ -285,6 +285,8 @@ void Invocation::loadParams() {
 rept:
 		++x;
 	}
+	params->getInputFileMask()->parse();
+	params->getOutputFileMask()->parse();
 }
 
 void Invocation::terminate(bool needWarnings, bool needDeletingEnvironment) {
